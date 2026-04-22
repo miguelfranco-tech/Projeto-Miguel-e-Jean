@@ -1,0 +1,73 @@
+function analisar() {
+
+let texto = document.getElementById("mensagem").value.toLowerCase();
+texto = texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+let score = 0;
+let resultado = "";
+
+// função regex
+function detectar(regex, pontos, msg) {
+  let match = texto.match(regex);
+  if (match) {
+    score += pontos * match.length;
+    resultado += msg + " (" + match.length + "x)<br>";
+  }
+}
+
+// DETECÇÕES
+detectar(/urgente|agora|imediato|rapido/g, 2, "🔴 Urgência");
+detectar(/ganhe|lucro|rico|dinheiro/g, 3, "💰 Promessa");
+detectar(/premio|oferta|brinde/g, 2, "🎁 Oferta");
+detectar(/cpf|senha|codigo|cartao/g, 5, "🔒 Dados sensíveis");
+detectar(/segredo|ajuda|desesperado/g, 2, "🧠 Emoção");
+detectar(/midia|censurado|escondem/g, 2, "🌐 Fake news");
+detectar(/clique|link|acesse/g, 3, "🔗 Link");
+
+// 🎲 FRASES VARIÁVEIS
+function aleatorio(lista) {
+  return lista[Math.floor(Math.random() * lista.length)];
+}
+
+let baixo = [
+"🟢 Baixa probabilidade de manipulação detectada<br>💬 Tudo tranquilo por aqui… mas o olhar atento nunca tira férias 👀",
+"🟢 Baixa probabilidade de manipulação detectada<br>💬 Nada suspeito à primeira vista — aprovado com cautela 👍",
+"🟢 Baixa probabilidade de manipulação detectada<br>💬 Mensagem aparentemente segura… mas a curiosidade saudável sempre ajuda 🧐"
+];
+
+let leve = [
+"🟠 Possíveis indícios leves de manipulação<br>💬 Tem algo meio estranho aqui… melhor não confiar 100% 🤨",
+"🟠 Possíveis indícios leves de manipulação<br>💬 Pequenos sinais de alerta — nada grave, mas vale ficar esperto 👀",
+"🟠 Possíveis indícios leves de manipulação<br>💬 Não parece perigoso… mas também não parece totalmente confiável 🤔"
+];
+
+let medio = [
+"🟡 Presença moderada de padrões suspeitos<br>💬 Cuidado… essa mensagem pode estar tentando te convencer rápido demais 😐",
+"🟡 Presença moderada de padrões suspeitos<br>💬 Sinais claros de manipulação — melhor analisar antes de agir ⚠️",
+"🟡 Presença moderada de padrões suspeitos<br>💬 Algo aqui não bate muito bem… melhor pensar duas vezes 🤨"
+];
+
+let alto = [
+"🔴 Alta probabilidade de manipulação ou golpe<br>💬 Alerta máximo! Isso aqui tá com cara de problema 😬",
+"🔴 Alta probabilidade de manipulação ou golpe<br>💬 Muito suspeito… melhor não clicar nem compartilhar 🚫",
+"🔴 Alta probabilidade de manipulação ou golpe<br>💬 Essa mensagem parece armadilha — melhor passar longe 🛑"
+];
+
+// 📊 CLASSIFICAÇÃO
+let nivel = "";
+
+if (score >= 10) {
+  nivel = aleatorio(alto);
+} else if (score >= 5) {
+  nivel = aleatorio(medio);
+} else if (score > 0) {
+  nivel = aleatorio(leve);
+} else {
+  nivel = aleatorio(baixo);
+}
+
+// RESULTADO FINAL
+document.getElementById("resultado").innerHTML =
+resultado + "<br><b>Pontuação: " + score + "<br>" + nivel + "</b>";
+
+}
