@@ -1,163 +1,163 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>Detector de Golpes</title>
+<meta charset="UTF-8">
+<title>Escudo Digital</title>
 
-  <style>
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f0f2f5;
-    }
+<style>
+body {
+  font-family: Arial;
+  text-align: center;
+  background: #121212;
+  color: white;
+  padding: 20px;
+}
 
-    .container {
-      text-align: center;
-      background: white;
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
-      width: 90%;
-      max-width: 500px;
-    }
+textarea {
+  width: 80%;
+  height: 120px;
+  border-radius: 10px;
+  padding: 10px;
+}
 
-    textarea {
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      resize: none;
-    }
+button {
+  padding: 10px 15px;
+  margin: 5px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
 
-    button {
-      padding: 10px 20px;
-      border: none;
-      background: #007bff;
-      color: white;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-    }
+#resultado {
+  margin-top: 20px;
+  font-size: 18px;
+}
 
-    button:hover {
-      background: #0056b3;
-    }
+.barra {
+  width: 80%;
+  height: 20px;
+  background: #333;
+  margin: 10px auto;
+  border-radius: 10px;
+  overflow: hidden;
+}
 
-    #resultado {
-      margin-top: 15px;
-      text-align: left;
-    }
+.progresso {
+  height: 100%;
+  width: 0%;
+}
+</style>
 
-    hr {
-      margin: 10px 0;
-    }
-  </style>
 </head>
 
 <body>
 
-<div class="container">
+<h1>🛡️ Escudo Digital</h1>
 
-  <h2>Detector de Golpes 💻</h2>
+<textarea id="mensagem" placeholder="Cole a mensagem aqui..."></textarea><br>
 
-  <textarea id="mensagem" placeholder="Digite a mensagem aqui..." rows="5"></textarea><br><br>
+<button onclick="analisar()">Analisar</button>
 
-  <button onclick="analisar()">🔍 Analisar mensagem</button>
+<br><br>
 
-  <p id="resultado"></p>
+<!-- BOTÕES DE DEMO -->
+<button onclick="demo1()">🎁 Golpe de prêmio</button>
+<button onclick="demo2()">⚠️ Urgência bancária</button>
+<button onclick="demo3()">🌐 Fake news</button>
 
+<div class="barra">
+  <div id="barra" class="progresso"></div>
 </div>
 
+<div id="resultado"></div>
+
 <script>
+
 function analisar() {
 
-  let texto = document.getElementById("mensagem").value.toLowerCase();
-  texto = texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+let texto = document.getElementById("mensagem").value.toLowerCase();
+texto = texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-  let score = 0;
-  let resultado = "";
+let score = 0;
+let explicacao = [];
 
-  function detectar(lista, pontos, msg) {
-    let count = 0;
-    lista.forEach(p => {
-      if (texto.includes(p)) count++;
-    });
-
-    if (count > 0) {
-      score += pontos * count;
-      resultado += msg + " (" + count + "x)<br>";
+// função detectar
+function detectar(palavras, pontos, nome) {
+  palavras.forEach(p => {
+    if (texto.includes(p)) {
+      score += pontos;
+      explicacao.push(nome + " → " + p);
     }
-  }
-
-  // 🟢 BAIXO RISCO (diminui score)
-  detectar([
-    "reuniao","relatorio","agenda","confirmacao","horario","envio",
-    "documento","atualizacao","conversa","reuniao marcada",
-    "acompanhamento","atendimento","suporte","informacao","contato"
-  ], -1, "🟢 Linguagem comum");
-
-  // 🟠 RISCO LEVE
-  detectar([
-    "oportunidade","novidade","beneficio","destaque","recomendacao",
-    "sugestao","interessante","exclusivo","vantagem","confira",
-    "veja isso","pode gostar","talvez","vale a pena","oportunidade unica"
-  ], 1, "🟠 Marketing leve");
-
-  // 🟡 MÉDIO RISCO
-  detectar([
-    "imperdivel","acesso imediato","ativacao","liberacao",
-    "confirmacao pendente","verificacao necessaria","desbloqueio",
-    "validacao","acao necessaria","solicitacao urgente",
-    "atualizacao obrigatoria","revisao de conta","tentativa de acesso",
-    "alerta de seguranca","sessao expirada"
-  ], 3, "🟡 Alerta suspeito");
-
-  // 🔴 ALTO RISCO
-  detectar([
-    "bloqueio imediato","conta comprometida","invasao detectada",
-    "transferencia suspeita","saque nao autorizado",
-    "codigo de seguranca","token","autenticacao",
-    "redefinir senha","dados bancarios","numero do cartao",
-    "chave pix","verificacao bancaria",
-    "confirmacao de identidade","acesso nao autorizado"
-  ], 5, "🔴 Alto risco");
-
-  // 🎲 frases
-  function aleatorio(lista) {
-    return lista[Math.floor(Math.random() * lista.length)];
-  }
-
-  let baixo = ["🟢 Parece seguro."];
-  let leve = ["🟠 Pequenos sinais de atenção."];
-  let medio = ["🟡 Cuidado! Pode ser golpe."];
-  let alto = ["🔴 ALTO RISCO DE GOLPE!"];
-
-  let nivel = "";
-
-  if (score >= 10) nivel = aleatorio(alto);
-  else if (score >= 5) nivel = aleatorio(medio);
-  else if (score > 0) nivel = aleatorio(leve);
-  else nivel = aleatorio(baixo);
-
-  // 🎨 cor
-  let cor = "green";
-  if (score >= 10) cor = "red";
-  else if (score >= 5) cor = "orange";
-  else if (score > 0) cor = "#e6b800";
-
-  if (resultado === "") {
-    resultado = "✅ Nenhum padrão suspeito encontrado.<br>";
-  }
-
-  document.getElementById("resultado").innerHTML =
-    resultado +
-    "<hr>" +
-    "<b style='color:" + cor + "'>Pontuação: " + score + "<br>" + nivel + "</b>";
+  });
 }
+
+// DETECÇÕES
+detectar(["urgente","agora","imediato","rapido"],2,"Urgência");
+detectar(["ganhe","lucro","rico","dinheiro"],3,"Promessa");
+detectar(["premio","oferta","brinde"],2,"Oferta");
+detectar(["cpf","senha","codigo","cartao"],5,"Dados sensíveis");
+detectar(["segredo","ajuda","desesperado"],2,"Emoção");
+detectar(["midia","censurado","escondem"],3,"Fake news");
+detectar(["clique","link","acesse"],3,"Link");
+
+// COMBINAÇÕES INTELIGENTES
+if (texto.includes("urgente") && texto.includes("cpf")) {
+  score += 6;
+  explicacao.push("Combinação perigosa: urgência + dados");
+}
+
+if (texto.includes("ganhe") && texto.includes("rapido")) {
+  score += 5;
+  explicacao.push("Promessa irreal reforçada");
+}
+
+// CLASSIFICAÇÃO
+let nivel = "";
+let cor = "";
+
+if (score >= 12) {
+  nivel = "🔴 Alto risco";
+  cor = "red";
+} else if (score >= 6) {
+  nivel = "🟡 Médio risco";
+  cor = "yellow";
+} else if (score > 0) {
+  nivel = "🟠 Baixo risco";
+  cor = "orange";
+} else {
+  nivel = "🟢 Seguro";
+  cor = "green";
+}
+
+// BARRA
+let porcentagem = Math.min(score * 8, 100);
+document.getElementById("barra").style.width = porcentagem + "%";
+document.getElementById("barra").style.background = cor;
+
+// RESULTADO
+document.getElementById("resultado").innerHTML =
+"<b>" + nivel + "</b><br><br>" +
+"📊 Pontuação: " + score + "<br><br>" +
+"🔎 Detecção:<br>" + explicacao.join("<br>");
+
+}
+
+// DEMOS
+function demo1() {
+document.getElementById("mensagem").value =
+"Parabéns! Você ganhou um prêmio exclusivo, clique no link agora e informe seu CPF!";
+}
+
+function demo2() {
+document.getElementById("mensagem").value =
+"URGENTE! Sua conta será bloqueada, confirme seus dados bancários agora!";
+}
+
+function demo3() {
+document.getElementById("mensagem").value =
+"A mídia não mostra isso! Compartilhe antes que apaguem essa verdade chocante!";
+}
+
 </script>
 
 </body>
