@@ -6,36 +6,37 @@
 
 <style>
 body{
-  font-family: Arial, sans-serif;
+  font-family: Arial;
   background:#0f172a;
-  color:#e5e7eb;
+  color:white;
   text-align:center;
   padding:20px;
 }
-h1{color:#38bdf8}
+
 textarea{
   width:85%;
   height:120px;
   border-radius:10px;
   padding:10px;
 }
+
 button{
   padding:10px 15px;
   margin:5px;
   border-radius:8px;
   border:none;
   cursor:pointer;
-  background:#1f2937;
+  background:#1e293b;
   color:white;
 }
+
 button:hover{background:#334155}
 
 #resultado{
   margin-top:20px;
-  font-size:17px;
-  background:#111827;
   padding:15px;
   border-radius:10px;
+  background:#111827;
 }
 
 .barra{
@@ -45,10 +46,12 @@ button:hover{background:#334155}
   margin:10px auto;
   border-radius:10px;
 }
+
 .progresso{
   height:100%;
   width:0%;
   border-radius:10px;
+  transition:0.5s;
 }
 
 .divisor{
@@ -81,13 +84,9 @@ h3{color:#22c55e}
 <button onclick="demo1()">🎁 Golpe de prêmio</button>
 <button onclick="demo2()">⚠️ Urgência bancária</button>
 <button onclick="demo3()">🌐 Fake news</button>
-<button onclick="gerarGolpe()">🎲 Gerar golpe automático</button>
-
-<div id="historico"></div>
+<button onclick="gerar()">🎲 Gerar golpe</button>
 
 <script>
-
-let historico = [];
 
 function analisar(){
 
@@ -96,121 +95,129 @@ texto = texto.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 
 let score = 0;
 let explicacao = [];
-let tipo = "Indefinido";
-let estrategia = "";
+let tipo = "";
+let estrategia = [];
 
-// função inteligente
-function detectar(palavras,pontos,nome){
-  palavras.forEach(p=>{
-    if(texto.includes(p)){
-      score+=pontos;
-      explicacao.push(nome+" → "+p);
+// FUNÇÃO INTELIGENTE (evita falso positivo)
+function detectar(palavra, contexto, pontos, nome){
+  if(texto.includes(palavra)){
+    if(!contexto || contexto.some(c=>texto.includes(c))){
+      score += pontos;
+      explicacao.push(nome + " → " + palavra);
     }
-  });
+  }
 }
 
-// DETECÇÕES MAIS PRECISAS
-detectar(["urgente","imediato","agora","rapido"],2,"Urgência");
-detectar(["ganhe","lucro","dinheiro","rico"],3,"Promessa");
-detectar(["premio","brinde","oferta"],2,"Oferta");
-detectar(["cpf","senha","codigo","cartao","pix"],5,"Dados sensíveis");
-detectar(["segredo","desesperado","ajuda"],2,"Emoção");
-detectar(["midia","censurado","escondem"],3,"Fake news");
-detectar(["clique","link","acesse"],3,"Link");
+// DETECÇÃO COM CONTEXTO
+detectar("ganhe",["dinheiro","rapido","facil"],3,"Promessa");
+detectar("premio",["ganhou","resgate","clique"],3,"Golpe de prêmio");
+detectar("urgente",["agora","imediato","rapido"],2,"Urgência");
+detectar("cpf",null,5,"Dados sensíveis");
+detectar("senha",null,5,"Dados sensíveis");
+detectar("link",["clique","acesse"],3,"Link suspeito");
+detectar("midia",["esconde","censurado"],3,"Fake news");
+detectar("compartilhe",["urgente","antes"],2,"Fake news");
 
-// COMBINAÇÕES (AUMENTA PRECISÃO)
+// COMBINAÇÕES PODEROSAS
 if(texto.includes("cpf") && texto.includes("link")){
-  score+=6;
-  tipo="Phishing bancário";
-}
-if(texto.includes("ganhe") && texto.includes("premio")){
-  score+=5;
-  tipo="Golpe de prêmio";
-}
-if(texto.includes("midia") && texto.includes("compartilhe")){
-  score+=5;
-  tipo="Fake news";
-}
-if(texto.includes("urgente") && texto.includes("dados")){
-  score+=6;
-  tipo="Engenharia social";
+  score += 6;
+  tipo = "Phishing bancário";
 }
 
-// PERFIL DO GOLPISTA
-if(texto.includes("urgente")) estrategia="Pressão";
-if(texto.includes("ganhe")) estrategia+=" + Recompensa";
+if(texto.includes("premio") && texto.includes("ganhou")){
+  score += 5;
+  tipo = "Golpe de prêmio";
+}
+
+if(texto.includes("midia") && texto.includes("compartilhe")){
+  score += 5;
+  tipo = "Fake news";
+}
+
+if(texto.includes("urgente") && texto.includes("senha")){
+  score += 6;
+  tipo = "Engenharia social";
+}
+
+// ESTRATÉGIA
+if(texto.includes("urgente")) estrategia.push("Pressão");
+if(texto.includes("ganhe") || texto.includes("premio")) estrategia.push("Recompensa");
+if(texto.includes("ajuda") || texto.includes("desesperado")) estrategia.push("Emoção");
+
+// FALLBACK (nunca fica vazio)
+if(tipo === ""){
+  if(score >= 10) tipo = "Possível golpe digital";
+  else tipo = "Baixo risco";
+}
+
+// SCORE INTELIGENTE
+let risco = Math.min(score * 7, 100);
 
 // CLASSIFICAÇÃO
-let nivel="";
-let cor="";
-let risco=Math.min(score*8,100);
+let nivel="", cor="";
 
-if(score>=12){nivel="🔴 Alto risco"; cor="red";}
-else if(score>=6){nivel="🟡 Médio risco"; cor="yellow";}
-else if(score>0){nivel="🟠 Baixo risco"; cor="orange";}
+if(risco >= 70){nivel="🔴 Alto risco"; cor="red";}
+else if(risco >= 40){nivel="🟡 Médio risco"; cor="yellow";}
+else if(risco > 0){nivel="🟠 Baixo risco"; cor="orange";}
 else{nivel="🟢 Seguro"; cor="green";}
 
 // BARRA
-document.getElementById("barra").style.width=risco+"%";
-document.getElementById("barra").style.background=cor;
+document.getElementById("barra").style.width = risco + "%";
+document.getElementById("barra").style.background = cor;
 
-// DICAS INTELIGENTES
+// DICAS
 let dicas="";
-if(score>=12){
+if(risco >= 70){
 dicas="❌ Não clique em links<br>❌ Não envie dados<br>✔ Procure canais oficiais";
 }
-else if(score>=6){
+else if(risco >= 40){
 dicas="⚠️ Verifique a fonte antes de agir";
 }
 else{
-dicas="✔ Nenhum risco relevante identificado";
+dicas="✔ Mensagem aparentemente segura";
 }
 
 // RESULTADO FINAL
-let resultadoHTML=
+document.getElementById("resultado").innerHTML =
 "<b>"+nivel+"</b><br><br>"+
-"📊 Risco estimado: "+risco+"%<br><br>"+
-"🕵️ Tipo identificado: "+tipo+"<br>"+
-"🎭 Estratégia: "+(estrategia||"Não definida")+"<br><br>"+
+"📊 Risco: "+risco+"%<br><br>"+
+"🕵️ Tipo: "+tipo+"<br>"+
+"🎭 Estratégia: "+(estrategia.join(" + ") || "Nenhuma") + "<br><br>"+
 "🔎 Detecção:<br>"+explicacao.join("<br>")+"<br><br>"+
 "💡 Essa mensagem apresenta padrões comuns de manipulação digital.<br><br>"+
 "📌 Dicas:<br>"+dicas;
 
-document.getElementById("resultado").innerHTML=resultadoHTML;
-
-// HISTÓRICO
-historico.push(nivel+" ("+risco+"%)");
-document.getElementById("historico").innerHTML=
-"<br><b>🕘 Histórico:</b><br>"+historico.slice(-5).join("<br>");
 }
 
-// DEMOS (AGORA ANALISAM AUTOMÁTICO)
+// DEMOS
 function demo1(){
-document.getElementById("mensagem").value=
+document.getElementById("mensagem").value =
 "Parabéns! Você ganhou um prêmio exclusivo, clique no link agora e informe seu CPF!";
 analisar();
 }
+
 function demo2(){
-document.getElementById("mensagem").value=
-"URGENTE! Sua conta será bloqueada, confirme seus dados bancários agora!";
-analisar();
-}
-function demo3(){
-document.getElementById("mensagem").value=
-"A mídia não mostra isso! Compartilhe antes que apaguem essa verdade chocante!";
+document.getElementById("mensagem").value =
+"URGENTE! Sua conta será bloqueada, confirme sua senha agora!";
 analisar();
 }
 
-// GERADOR DE GOLPE
-function gerarGolpe(){
+function demo3(){
+document.getElementById("mensagem").value =
+"A mídia esconde isso, compartilhe antes que apaguem!";
+analisar();
+}
+
+// GERADOR
+function gerar(){
 let exemplos=[
-"URGENTE! Confirme seu CPF agora para evitar bloqueio!",
-"Parabéns! Você ganhou dinheiro fácil, clique no link!",
-"A mídia não mostra isso, compartilhe antes que apaguem!",
-"Ganhe lucro garantido sem esforço, acesse agora!"
+"URGENTE! Envie seu CPF agora para evitar bloqueio!",
+"Você ganhou dinheiro rápido, clique no link!",
+"A mídia censura isso, compartilhe já!",
+"Confirme sua senha imediatamente!"
 ];
-let sorteio=exemplos[Math.floor(Math.random()*exemplos.length)];
-document.getElementById("mensagem").value=sorteio;
+let r = exemplos[Math.floor(Math.random()*exemplos.length)];
+document.getElementById("mensagem").value = r;
 analisar();
 }
 
