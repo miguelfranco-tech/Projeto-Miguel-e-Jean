@@ -46,6 +46,11 @@ button {
   height: 100%;
   width: 0%;
 }
+
+.divisor {
+  margin: 30px 0;
+  border-top: 1px solid #444;
+}
 </style>
 
 </head>
@@ -58,18 +63,21 @@ button {
 
 <button onclick="analisar()">Analisar</button>
 
-<br><br>
-
-<!-- BOTÕES DE DEMO -->
-<button onclick="demo1()">🎁 Golpe de prêmio</button>
-<button onclick="demo2()">⚠️ Urgência bancária</button>
-<button onclick="demo3()">🌐 Fake news</button>
-
 <div class="barra">
   <div id="barra" class="progresso"></div>
 </div>
 
 <div id="resultado"></div>
+
+<div class="divisor"></div>
+
+<!-- FRASE NOVA -->
+<h3>💡 Não sabe como funciona um golpe? Veja na prática abaixo:</h3>
+
+<!-- BOTÕES DE DEMO -->
+<button onclick="demo1()">🎁 Golpe de prêmio</button>
+<button onclick="demo2()">⚠️ Urgência bancária</button>
+<button onclick="demo3()">🌐 Fake news</button>
 
 <script>
 
@@ -81,7 +89,6 @@ texto = texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 let score = 0;
 let explicacao = [];
 
-// função detectar
 function detectar(palavras, pontos, nome) {
   palavras.forEach(p => {
     if (texto.includes(p)) {
@@ -91,7 +98,6 @@ function detectar(palavras, pontos, nome) {
   });
 }
 
-// DETECÇÕES
 detectar(["urgente","agora","imediato","rapido"],2,"Urgência");
 detectar(["ganhe","lucro","rico","dinheiro"],3,"Promessa");
 detectar(["premio","oferta","brinde"],2,"Oferta");
@@ -100,7 +106,7 @@ detectar(["segredo","ajuda","desesperado"],2,"Emoção");
 detectar(["midia","censurado","escondem"],3,"Fake news");
 detectar(["clique","link","acesse"],3,"Link");
 
-// COMBINAÇÕES INTELIGENTES
+// COMBINAÇÕES
 if (texto.includes("urgente") && texto.includes("cpf")) {
   score += 6;
   explicacao.push("Combinação perigosa: urgência + dados");
