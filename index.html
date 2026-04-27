@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <title>Escudo Digital</title>
@@ -7,83 +7,70 @@
 <style>
 body {
   font-family: Arial, sans-serif;
-  background: #f2f4f8;
+  background: #f4f6f8;
   margin: 0;
 }
 
-/* TOPO */
-.topo {
-  background: linear-gradient(90deg, #0a2a66, #0d47a1);
+/* HEADER */
+.header {
+  background: linear-gradient(90deg, #1f2937, #374151);
   color: white;
   padding: 20px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 15px;
 }
 
-.titulo {
-  font-size: 28px;
-  font-weight: bold;
+.header h1 {
+  margin: 0;
 }
 
-.sub {
-  font-size: 16px;
-}
-
-.btn-audio {
-  background: #1e3a8a;
-  color: white;
-  padding: 12px 18px;
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-/* CONTAINER */
 .container {
   max-width: 800px;
-  margin: auto;
+  margin: 20px auto;
+  background: white;
   padding: 20px;
+  border-radius: 15px;
 }
 
 /* INPUT */
 textarea {
   width: 100%;
   height: 120px;
-  font-size: 18px;
-  padding: 15px;
   border-radius: 10px;
   border: 2px solid #ccc;
+  padding: 10px;
+  font-size: 16px;
 }
 
-/* BOTÃO */
+/* BOTÃO ANALISAR */
 .btn {
   width: 100%;
   margin-top: 15px;
   padding: 15px;
-  font-size: 20px;
-  background: linear-gradient(90deg, #1e88e5, #1565c0);
+  font-size: 18px;
+  background: #2563eb;
   color: white;
   border: none;
   border-radius: 10px;
   cursor: pointer;
 }
 
-/* ALERTA */
-.alerta {
+.btn:hover {
+  background: #1d4ed8;
+}
+
+/* RESULTADO */
+.resultado {
   margin-top: 20px;
-  padding: 20px;
-  border-radius: 15px;
+  padding: 15px;
+  border-radius: 10px;
   background: #fff3f3;
-  border: 2px solid #ff4d4d;
-  display: none;
+  border: 2px solid #fca5a5;
 }
 
-.alerta h2 {
-  color: red;
-}
-
-/* CARDS */
-.cards {
+/* EXEMPLOS */
+.exemplos {
   display: flex;
   gap: 10px;
   margin-top: 20px;
@@ -93,50 +80,48 @@ textarea {
   flex: 1;
   padding: 15px;
   border-radius: 10px;
-  background: #fff;
   text-align: center;
-  font-size: 16px;
 }
 
-/* DICAS */
-.dicas {
-  margin-top: 20px;
-  background: #fff;
-  padding: 15px;
-  border-radius: 10px;
-  display: none;
-}
+.roxo { background: #ede9fe; }
+.azul { background: #e0f2fe; }
+.verde { background: #dcfce7; }
 
-.btn-dicas {
-  margin-top: 15px;
-  padding: 15px;
-  width: 100%;
-  font-size: 18px;
-  background: #ffcc00;
+.card button {
+  margin-top: 10px;
+  padding: 8px;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
 }
 
-footer {
-  text-align: center;
+/* DICAS */
+.dicas-btn {
   margin-top: 20px;
+  background: #facc15;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.dicas-box {
+  display: none;
+  margin-top: 10px;
+  background: #fff7cc;
+  padding: 15px;
+  border-radius: 10px;
 }
 </style>
 </head>
 
 <body>
 
-<!-- TOPO -->
-<div class="topo">
-  <div>
-    <div class="titulo">🛡️ ESCUDO DIGITAL</div>
-    <div class="sub">Proteção inteligente para você</div>
-  </div>
-  <div class="btn-audio" onclick="ouvir()">🔊 Ouvir instruções</div>
+<div class="header">
+  <h1>🛡️ Escudo Digital</h1>
 </div>
 
-<!-- CONTEÚDO -->
 <div class="container">
 
 <h2>1. Cole a mensagem que você recebeu</h2>
@@ -146,74 +131,111 @@ footer {
 
 <button class="btn" onclick="analisar()">🔍 ANALISAR MENSAGEM</button>
 
-<!-- RESULTADO -->
-<div id="alerta" class="alerta">
-  <h2>⚠️ CUIDADO! PODE SER GOLPE</h2>
-  <p id="resultado"></p>
-</div>
+<div id="resultado" class="resultado"></div>
 
-<!-- CARDS -->
+<!-- EXEMPLOS -->
 <h3>Exemplos de golpes comuns</h3>
 
-<div class="cards">
-  <div class="card">🎁 Prêmio falso<br><small>Prometem prêmios</small></div>
-  <div class="card">🏦 Urgência bancária<br><small>Conta bloqueada</small></div>
-  <div class="card">📢 Fake news<br><small>Compartilhe rápido</small></div>
+<div class="exemplos">
+
+<div class="card roxo">
+<h4>🎁 Prêmio falso</h4>
+<p>Prometem prêmios para pegar seus dados.</p>
+<button onclick="exemplo('premio')">Ver exemplo</button>
 </div>
 
-<!-- BOTÃO DICAS -->
-<button class="btn-dicas" onclick="toggleDicas()">🛡️ Dicas de segurança</button>
+<div class="card azul">
+<h4>🏦 Urgência bancária</h4>
+<p>Dizem que sua conta será bloqueada.</p>
+<button onclick="exemplo('banco')">Ver exemplo</button>
+</div>
+
+<div class="card verde">
+<h4>📢 Notícia falsa</h4>
+<p>Pedem para compartilhar mentiras.</p>
+<button onclick="exemplo('fake')">Ver exemplo</button>
+</div>
+
+</div>
 
 <!-- DICAS -->
-<div id="dicas" class="dicas">
-  <ul>
-    <li>❌ Nunca clique em links desconhecidos</li>
-    <li>❌ Nunca informe CPF ou senha</li>
-    <li>✔️ Confirme com o banco oficial</li>
-    <li>✔️ Desconfie de urgência</li>
-    <li>✔️ Peça ajuda a alguém de confiança</li>
-  </ul>
-</div>
+<button class="dicas-btn" onclick="toggleDicas()">🛡️ Dicas de segurança</button>
 
-<footer>
-❤️ Feito para proteger você e quem você ama
-</footer>
+<div id="dicas" class="dicas-box">
+<ul>
+<li>Não clique em links desconhecidos</li>
+<li>Não informe CPF, senha ou código</li>
+<li>Desconfie de mensagens urgentes</li>
+<li>Confirme com a empresa oficial</li>
+<li>Evite compartilhar informações pessoais</li>
+</ul>
+</div>
 
 </div>
 
 <script>
 function analisar() {
-  let texto = document.getElementById("mensagem").value.toLowerCase();
 
-  let score = 0;
+let texto = document.getElementById("mensagem").value.toLowerCase();
 
-  if (/urgente|agora|rápido/.test(texto)) score += 2;
-  if (/dinheiro|ganhe|pix/.test(texto)) score += 3;
-  if (/senha|cpf|cartao/.test(texto)) score += 5;
-  if (/link|clique/.test(texto)) score += 3;
+let score = 0;
+let resultado = "";
 
-  let resultado = "";
-
-  if (score >= 7) {
-    resultado = "Essa mensagem tem fortes sinais de golpe. Não interaja.";
-  } else if (score >= 3) {
-    resultado = "Essa mensagem pode ser suspeita. Tenha cuidado.";
-  } else {
-    resultado = "Parece segura, mas continue atento.";
+// DETECÇÃO
+function detectar(regex, pontos, msg) {
+  let match = texto.match(regex);
+  if (match) {
+    score += pontos * match.length;
+    resultado += msg + "<br>";
   }
-
-  document.getElementById("alerta").style.display = "block";
-  document.getElementById("resultado").innerHTML = resultado;
 }
 
+detectar(/urgente|agora|imediato/g, 2, "🔴 Urgência");
+detectar(/ganhe|dinheiro|lucro/g, 3, "💰 Promessa");
+detectar(/premio|oferta/g, 2, "🎁 Oferta");
+detectar(/cpf|senha|cartao/g, 5, "🔒 Dados sensíveis");
+detectar(/clique|link/g, 3, "🔗 Link");
+
+let nivel = "";
+
+if (score >= 10) {
+  nivel = "🔴 ALTO RISCO - Pode ser golpe!";
+} else if (score >= 5) {
+  nivel = "🟡 Médio risco - Atenção!";
+} else if (score > 0) {
+  nivel = "🟠 Baixo risco - Fique atento.";
+} else {
+  nivel = "🟢 Seguro.";
+}
+
+document.getElementById("resultado").innerHTML =
+resultado + "<br><b>" + nivel + "</b>";
+}
+
+// EXEMPLOS
+function exemplo(tipo) {
+
+let msg = "";
+
+if (tipo == "premio") {
+msg = "Parabéns! Você ganhou um prêmio, clique aqui e informe seus dados!";
+}
+
+if (tipo == "banco") {
+msg = "URGENTE: sua conta será bloqueada, acesse o link agora!";
+}
+
+if (tipo == "fake") {
+msg = "Compartilhe isso antes que apaguem! Informação escondida!";
+}
+
+document.getElementById("mensagem").value = msg;
+}
+
+// DICAS
 function toggleDicas() {
-  let dicas = document.getElementById("dicas");
-  dicas.style.display = dicas.style.display === "none" ? "block" : "none";
-}
-
-function ouvir() {
-  let msg = new SpeechSynthesisUtterance("Cole a mensagem e clique em analisar para verificar se é golpe.");
-  speechSynthesis.speak(msg);
+let box = document.getElementById("dicas");
+box.style.display = box.style.display === "block" ? "none" : "block";
 }
 </script>
 
