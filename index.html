@@ -7,66 +7,69 @@
 <style>
 body {
   font-family: Arial, sans-serif;
-  background: #f4f6f8;
+  background: #f5f7fb;
   margin: 0;
 }
 
 /* HEADER */
 .header {
-  background: linear-gradient(90deg, #1f2937, #374151);
+  background: linear-gradient(90deg, #0f172a, #1e293b);
   color: white;
   padding: 20px;
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 10px;
 }
 
 .header h1 {
   margin: 0;
+  font-size: 24px;
 }
 
+/* CONTAINER */
 .container {
-  max-width: 800px;
+  max-width: 750px;
   margin: 20px auto;
   background: white;
   padding: 20px;
-  border-radius: 15px;
+  border-radius: 16px;
 }
 
 /* INPUT */
 textarea {
   width: 100%;
   height: 120px;
-  border-radius: 10px;
-  border: 2px solid #ccc;
-  padding: 10px;
+  border-radius: 12px;
+  border: 2px solid #d1d5db;
+  padding: 12px;
   font-size: 16px;
 }
 
-/* BOTÃO ANALISAR */
+/* BOTÃO */
 .btn {
   width: 100%;
   margin-top: 15px;
-  padding: 15px;
+  padding: 16px;
   font-size: 18px;
-  background: #2563eb;
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
   color: white;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
 }
 
 .btn:hover {
-  background: #1d4ed8;
+  opacity: 0.9;
 }
 
 /* RESULTADO */
 .resultado {
   margin-top: 20px;
   padding: 15px;
-  border-radius: 10px;
-  background: #fff3f3;
-  border: 2px solid #fca5a5;
+  border-radius: 12px;
+  background: #fff1f2;
+  border: 2px solid #fecaca;
+  font-size: 16px;
 }
 
 /* EXEMPLOS */
@@ -79,39 +82,42 @@ textarea {
 .card {
   flex: 1;
   padding: 15px;
-  border-radius: 10px;
+  border-radius: 12px;
   text-align: center;
 }
 
-.roxo { background: #ede9fe; }
+.roxo { background: #f3e8ff; }
 .azul { background: #e0f2fe; }
 .verde { background: #dcfce7; }
 
 .card button {
   margin-top: 10px;
-  padding: 8px;
+  padding: 10px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
+  font-weight: bold;
 }
 
 /* DICAS */
 .dicas-btn {
   margin-top: 20px;
-  background: #facc15;
+  background: #22c55e;
+  color: white;
   border: none;
-  padding: 12px;
-  border-radius: 10px;
+  padding: 14px;
+  border-radius: 12px;
   cursor: pointer;
   width: 100%;
+  font-size: 16px;
 }
 
 .dicas-box {
   display: none;
   margin-top: 10px;
-  background: #fff7cc;
+  background: #ecfdf5;
   padding: 15px;
-  border-radius: 10px;
+  border-radius: 12px;
 }
 </style>
 </head>
@@ -133,7 +139,6 @@ textarea {
 
 <div id="resultado" class="resultado"></div>
 
-<!-- EXEMPLOS -->
 <h3>Exemplos de golpes comuns</h3>
 
 <div class="exemplos">
@@ -158,22 +163,22 @@ textarea {
 
 </div>
 
-<!-- DICAS -->
 <button class="dicas-btn" onclick="toggleDicas()">🛡️ Dicas de segurança</button>
 
 <div id="dicas" class="dicas-box">
 <ul>
 <li>Não clique em links desconhecidos</li>
-<li>Não informe CPF, senha ou código</li>
-<li>Desconfie de mensagens urgentes</li>
+<li>Não informe CPF, senha ou códigos</li>
+<li>Desconfie de urgência exagerada</li>
 <li>Confirme com a empresa oficial</li>
-<li>Evite compartilhar informações pessoais</li>
+<li>Nunca compartilhe dados pessoais</li>
 </ul>
 </div>
 
 </div>
 
 <script>
+// ANALISADOR
 function analisar() {
 
 let texto = document.getElementById("mensagem").value.toLowerCase();
@@ -181,20 +186,21 @@ let texto = document.getElementById("mensagem").value.toLowerCase();
 let score = 0;
 let resultado = "";
 
-// DETECÇÃO
 function detectar(regex, pontos, msg) {
   let match = texto.match(regex);
   if (match) {
     score += pontos * match.length;
-    resultado += msg + "<br>";
+    resultado += msg + " (" + match.length + "x)<br>";
   }
 }
 
-detectar(/urgente|agora|imediato/g, 2, "🔴 Urgência");
-detectar(/ganhe|dinheiro|lucro/g, 3, "💰 Promessa");
-detectar(/premio|oferta/g, 2, "🎁 Oferta");
-detectar(/cpf|senha|cartao/g, 5, "🔒 Dados sensíveis");
-detectar(/clique|link/g, 3, "🔗 Link");
+// MELHORADO
+detectar(/urgente|agora|imediato|rápido/g, 2, "🔴 Urgência");
+detectar(/ganhe|lucro|dinheiro|pix/g, 3, "💰 Promessa");
+detectar(/premio|oferta|brinde/g, 2, "🎁 Oferta");
+detectar(/cpf|senha|codigo|cartao/g, 5, "🔒 Dados sensíveis");
+detectar(/clique|link|acesse/g, 3, "🔗 Link");
+detectar(/compartilhe|repasse|envie/g, 2, "📢 Compartilhamento suspeito");
 
 let nivel = "";
 
@@ -212,24 +218,38 @@ document.getElementById("resultado").innerHTML =
 resultado + "<br><b>" + nivel + "</b>";
 }
 
-// EXEMPLOS
+// EXEMPLOS (AGORA MELHORADOS)
 function exemplo(tipo) {
 
-let msg = "";
+let lista = [];
 
-if (tipo == "premio") {
-msg = "Parabéns! Você ganhou um prêmio, clique aqui e informe seus dados!";
+if (tipo === "premio") {
+lista = [
+"Parabéns! Você ganhou um prêmio, informe seu CPF agora!",
+"Você foi sorteado! Clique aqui e resgate seu brinde!",
+"Ganhe dinheiro fácil agora mesmo! Acesse já!"
+];
 }
 
-if (tipo == "banco") {
-msg = "URGENTE: sua conta será bloqueada, acesse o link agora!";
+if (tipo === "banco") {
+lista = [
+"URGENTE: sua conta será bloqueada, clique no link!",
+"Acesse agora ou perderá seu acesso bancário!",
+"Confirme seus dados imediatamente para evitar bloqueio!"
+];
 }
 
-if (tipo == "fake") {
-msg = "Compartilhe isso antes que apaguem! Informação escondida!";
+if (tipo === "fake") {
+lista = [
+"Compartilhe antes que apaguem essa informação!",
+"A mídia não quer que você veja isso!",
+"Envie isso para todos imediatamente!"
+];
 }
 
-document.getElementById("mensagem").value = msg;
+let aleatoria = lista[Math.floor(Math.random() * lista.length)];
+
+document.getElementById("mensagem").value = aleatoria;
 }
 
 // DICAS
