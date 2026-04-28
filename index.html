@@ -5,9 +5,10 @@
 <title>🛡️ Escudo Digital</title>
 
 <style>
+
 body{
   font-family: Arial;
-  background: linear-gradient(135deg,#e3f2fd,#f4f6f9);
+  background: linear-gradient(135deg,#dbeafe,#f0f9ff);
   text-align:center;
   padding:20px;
 }
@@ -26,6 +27,8 @@ textarea{
   height:120px;
   border-radius:10px;
   padding:10px;
+  border:2px solid #cbd5e1;
+  font-size:16px;
 }
 
 button{
@@ -33,20 +36,23 @@ button{
   padding:12px;
   border:none;
   border-radius:10px;
-  background:linear-gradient(135deg,#3aa6b9,#0077b6);
+  background: linear-gradient(135deg,#38bdf8,#0284c7);
   color:white;
+  font-weight:bold;
   cursor:pointer;
   transition:0.3s;
 }
 
 button:hover{
   transform:scale(1.05);
+  opacity:0.9;
 }
 
 #resultado{
   margin-top:20px;
   padding:15px;
   border-radius:12px;
+  background:#f8fafc;
   opacity:0;
   transform:translateY(10px);
   transition:0.4s;
@@ -58,7 +64,7 @@ button:hover{
 }
 
 #barraContainer{
-  background:#ddd;
+  background:#e2e8f0;
   border-radius:10px;
   margin-top:10px;
 }
@@ -84,7 +90,8 @@ button:hover{
 
 #dicas{
   display:none;
-  background:#fff3cd;
+  background:#fef3c7;
+  border-left:5px solid #f59e0b;
   padding:10px;
   border-radius:10px;
   margin-top:10px;
@@ -93,9 +100,11 @@ button:hover{
 .simulador{
   margin-top:25px;
   padding:15px;
-  background:#eef7ff;
+  background:#eff6ff;
+  border-left:5px solid #3b82f6;
   border-radius:12px;
 }
+
 </style>
 </head>
 
@@ -126,7 +135,6 @@ button:hover{
 <p>Desconfie de urgência.</p>
 </div>
 
-<!-- SIMULADOR -->
 <div class="simulador">
 <h3>🧠 Treinar contra golpes</h3>
 
@@ -152,7 +160,6 @@ function aleatorio(l){
 return l[Math.floor(Math.random()*l.length)];
 }
 
-// FRASES
 let frases={
 baixo:["🟢 Tudo parece normal.","🟢 Pode ficar tranquilo."],
 medio:["🟡 Algo não está certo.","🟡 Melhor analisar com calma."],
@@ -163,10 +170,14 @@ function analisar(){
 
 let texto = normalizar(document.getElementById("mensagem").value);
 
+if(!texto.trim()){
+  alert("Digite uma mensagem primeiro!");
+  return;
+}
+
 let score=0;
 let motivos="";
 
-// DETECÇÃO
 function detectar(regex,pontos,msg){
 let m=texto.match(regex);
 if(m){
@@ -175,7 +186,6 @@ motivos+=msg+"<br>";
 }
 }
 
-// REGRAS
 detectar(/pix|senha|codigo|cartao|cvv/g,6,"🔒 Dados sensíveis");
 detectar(/urgente|agora|imediato/g,3,"⚠️ Urgência");
 detectar(/http|www|\.com|\.br/g,4,"🔗 Link suspeito");
@@ -183,16 +193,13 @@ detectar(/http|www|\.com|\.br/g,4,"🔗 Link suspeito");
 detectar(/compartilhe|divulgue/g,3,"📢 Compartilhar");
 detectar(/antes que apaguem|vai sumir/g,4,"⚠️ Pressão");
 
-detectar(/reuniao|suporte/g,-1,"✔ Linguagem normal");
+detectar(/reuniao|suporte|atendimento|confirmacao/g,-1,"✔ Linguagem normal");
 
-// COMBINAÇÕES
 if(texto.includes("pix") && texto.includes("urgente")) score+=8;
 if(texto.includes("compartilhe") && texto.includes("urgente")) score+=6;
 
-// %
 let porcentagem=Math.min(100,score*10);
 
-// BARRA
 let barra=document.getElementById("barra");
 barra.style.width=porcentagem+"%";
 
@@ -200,13 +207,16 @@ if(porcentagem<30) barra.style.background="green";
 else if(porcentagem<70) barra.style.background="orange";
 else barra.style.background="red";
 
-// CLASSIFICAÇÃO
 let nivel,frase;
+let res=document.getElementById("resultado");
+
+res.classList.remove("alerta");
+void res.offsetWidth;
 
 if(porcentagem>=70){
 nivel="🔴 ALTO RISCO";
 frase=aleatorio(frases.alto);
-document.getElementById("resultado").classList.add("alerta");
+res.classList.add("alerta");
 }
 else if(porcentagem>=40){
 nivel="🟡 MÉDIO RISCO";
@@ -221,12 +231,6 @@ nivel="🟢 SEGURO";
 frase=aleatorio(frases.baixo);
 }
 
-// RESULTADO
-let res=document.getElementById("resultado");
-res.classList.remove("alerta");
-void res.offsetWidth;
-if(porcentagem>=70) res.classList.add("alerta");
-
 res.innerHTML=
 "<b>"+nivel+" ("+porcentagem+"%)</b><br><br>"+
 "<b>"+frase+"</b><br><br>"+motivos;
@@ -235,7 +239,6 @@ res.classList.add("ativo");
 
 }
 
-// EXEMPLOS
 function exemplo(t){
 let m="";
 if(t=="premio") m="Parabéns! Você ganhou um prêmio, clique agora!";
@@ -245,13 +248,15 @@ document.getElementById("mensagem").value=m;
 analisar();
 }
 
-// DICAS
 function toggleDicas(){
 let d=document.getElementById("dicas");
-d.style.display=d.style.display==="none"?"block":"none";
+if(d.style.display==="block"){
+  d.style.display="none";
+}else{
+  d.style.display="block";
+}
 }
 
-// SIMULADOR
 let simulacoes=[
 {msg:"Seu banco pede confirmação urgente de código", correto:false},
 {msg:"Promoção exclusiva, clique agora", correto:false},
@@ -275,7 +280,6 @@ document.getElementById("simRes").innerText="❌ Cuidado! Isso pode ser golpe.";
 }
 }
 
-// iniciar
 novaSim();
 
 </script>
