@@ -1,1 +1,1 @@
-# Projeto-Miguel-e-Jean
+# CBC Squad Project
