@@ -29,7 +29,6 @@ h1{ color:#0284c7; }
   margin-bottom:15px;
 }
 
-/* 🔥 AGORA EDITÁVEL MAS FIXO */
 textarea{
   width:100%;
   height:120px;
@@ -37,7 +36,7 @@ textarea{
   padding:10px;
   border:2px solid #cbd5e1;
   background:#f8fafc;
-  resize:none; /* impede mudar tamanho */
+  resize:none;
   outline:none;
 }
 
@@ -98,7 +97,7 @@ button:hover{ transform:scale(1.05); }
 
 <h1>🛡️ Escudo Digital</h1>
 <p class="descricao">
-Analisa mensagens e identifica possíveis golpes, fake news e manipulações digitais.
+Analisa mensagens e identifica golpes, fake news e manipulação digital.
 </p>
 
 <textarea id="mensagem" placeholder="Digite ou escolha um exemplo..."></textarea>
@@ -128,7 +127,7 @@ Analisa mensagens e identifica possíveis golpes, fake news e manipulações dig
 <p>✔ Bancos nunca pedem senha</p>
 </div>
 
-<!-- 🧠 TREINAMENTO -->
+<!-- TREINAMENTO -->
 <div class="simulador">
 <h3>🧠 Treinar contra golpes</h3>
 <p id="simMsg"></p>
@@ -164,7 +163,7 @@ let m="";
 
 if(t=="premio") m="Parabéns! Você ganhou um prêmio, clique agora!";
 if(t=="banco") m="Sua conta foi invadida, envie o código urgente!";
-if(t=="fake") m="Compartilhe isso agora antes que seja apagado!";
+if(t=="fake") m="Compartilhe isso agora antes que seja apagado! A mídia não mostra essa verdade!";
 
 document.getElementById("mensagem").value = m;
 
@@ -186,52 +185,81 @@ let motivos=[];
 let explicacao=[];
 let intencao=[];
 
-// FAKE NEWS
-if(/compartilh|repasse/.test(texto)){
+// 🔴 FAKE NEWS
+if(/compartilh|repasse|divulg/.test(texto)){
 score+=6;
+motivos.push("📢 Incentivo ao compartilhamento");
 intencao.push("desinformação");
 }
 
-if(/apag|censur|midia/.test(texto)){
+if(/apag|censur|midia nao mostra|vao apagar/.test(texto)){
 score+=8;
-explicacao.push("Sensação de censura");
+motivos.push("🚨 Sensação de censura");
+explicacao.push("Cria urgência para espalhar a mensagem");
 }
 
-// DADOS
-if(/pix|senha|codigo|cartao/.test(texto)){
+if(/verdade|comprovad/.test(texto)){
+score+=4;
+motivos.push("⚠️ Tentativa de convencer sem prova");
+}
+
+// 🔒 DADOS
+if(/pix|senha|codigo|cartao|cvv/.test(texto)){
 score+=7;
+motivos.push("🔒 Pedido de dados sensíveis");
 intencao.push("financeiro");
 }
 
-// URGÊNCIA
-if(/urgente|agora/.test(texto)){
+// ⚠️ URGÊNCIA
+if(/urgente|agora|imediato|nao perca/.test(texto)){
 score+=5;
-motivos.push("Pressão psicológica");
+motivos.push("⚠️ Pressão psicológica");
 }
 
-// MEDO
-if(/invadida|bloqueada/.test(texto)){
-score+=5;
-}
-
-// PROMESSA
-if(/ganhe|premio/.test(texto)){
+// 🔗 LINKS
+if(/http|www|\.com|\.br/.test(texto)){
 score+=4;
+motivos.push("🔗 Contém link suspeito");
 }
 
-// COMBINAÇÕES
+// 🔐 VERIFICAÇÃO
+if(/verificacao|confirmar|acesso/.test(texto)){
+score+=4;
+motivos.push("⚠️ Pedido de verificação");
+}
+
+// 🧠 MEDO
+if(/invadida|bloqueada|perigo|problema/.test(texto)){
+score+=5;
+explicacao.push("Uso de medo para manipular");
+}
+
+// 💰 PROMESSA
+if(/ganhe|premio|lucro/.test(texto)){
+score+=4;
+explicacao.push("Promessa para atrair atenção");
+}
+
+// 💥 COMBINAÇÕES
 if(texto.includes("pix") && texto.includes("urgente")){
 score+=12;
+explicacao.push("Combinação forte de golpe financeiro");
 }
 
-if(/compartilh/.test(texto) && /apag/.test(texto)){
+if(/compartilh/.test(texto) && /apag|midia/.test(texto)){
 score+=12;
+explicacao.push("Padrão clássico de fake news");
+}
+
+if(/codigo/.test(texto) && /urgente/.test(texto)){
+score+=10;
+explicacao.push("Possível roubo de conta");
 }
 
 // fallback
 if(score === 0){
 motivos.push("Mensagem comum");
-explicacao.push("Nenhum padrão suspeito");
+explicacao.push("Nenhum comportamento suspeito detectado");
 }
 
 // RESULTADO
@@ -244,28 +272,16 @@ if(porcentagem<30) barra.style.background="green";
 else if(porcentagem<70) barra.style.background="orange";
 else barra.style.background="red";
 
+// NÍVEL
 let nivel="";
 if(porcentagem>=70) nivel="🔴 ALTO RISCO";
 else if(porcentagem>=40) nivel="🟡 MÉDIO RISCO";
 else nivel="🟢 BAIXO RISCO";
 
-let frasesAlta=[
-"⚠️ Isso está com cara de golpe!",
-"🚨 Muito suspeito!",
-"❌ Não confie nisso!"
-];
-
-let frasesMedia=[
-"🤔 Algo estranho aqui...",
-"⚠️ Fique atento",
-"🧐 Pode ser golpe"
-];
-
-let frasesBaixa=[
-"🙂 Parece seguro",
-"✔ Nada suspeito",
-"👍 Mensagem comum"
-];
+// FRASES
+let frasesAlta=["⚠️ Isso está com cara de golpe!","🚨 Muito suspeito!","❌ Não confie nisso!"];
+let frasesMedia=["🤔 Algo estranho aqui...","⚠️ Fique atento","🧐 Pode ser golpe"];
+let frasesBaixa=["🙂 Parece seguro","✔ Nada suspeito","👍 Mensagem comum"];
 
 let frase="";
 if(porcentagem>=70) frase=frasesAlta[Math.floor(Math.random()*3)];
@@ -279,9 +295,10 @@ res.style.display="block";
 res.innerHTML =
 "<b>"+nivel+" ("+porcentagem+"%)</b><br><br>"+
 frase+"<br><br>"+
-"<b>Intenção:</b> "+(intencao.join(", ")||"não identificada")+"<br><br>"+
-"<b>Explicação:</b><br>"+explicacao.join("<br>")+
-"<br><br><small>⚠️ Baseado em padrões comuns de golpes.</small>";
+"<b>🎯 Intenção:</b> "+(intencao.join(", ")||"não identificada")+"<br><br>"+
+"<b>⚠️ Motivos:</b><br>"+(motivos.length ? motivos.join("<br>") : "Nenhum comportamento suspeito")+"<br><br>"+
+"<b>💬 Explicação:</b><br>"+(explicacao.length ? explicacao.join("<br>") : "Nenhum comportamento suspeito")+
+"<br><br><small>⚠️ Baseado em padrões comuns de golpes digitais.</small>";
 
 }
 
@@ -291,12 +308,12 @@ let d=document.getElementById("dicas");
 d.style.display=d.style.display==="block"?"none":"block";
 }
 
-// 🧠 TREINAMENTO
+// TREINAMENTO
 let simulacoes=[
 {msg:"Parabéns você ganhou dinheiro clique aqui", correto:false},
-{msg:"Sua conta foi invadida envie código agora", correto:false},
+{msg:"Sua conta foi invadida envie código urgente", correto:false},
 {msg:"Reunião amanhã às 10h", correto:true},
-{msg:"Compartilhe antes que apaguem", correto:false},
+{msg:"Compartilhe antes que apaguem essa informação", correto:false},
 {msg:"Entrega confirmada amanhã", correto:true}
 ];
 
