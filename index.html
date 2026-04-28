@@ -2,279 +2,269 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>🛡️ Escudo Digital</title>
+<title>Escudo Digital</title>
 
 <style>
-body{
+body {
   font-family: Arial;
-  background:#f4f7fb;
-  margin:0;
-  text-align:center;
+  background: #f4f6f9;
+  text-align: center;
+  padding: 20px;
 }
 
-header{
-  background: linear-gradient(135deg,#1e3c72,#2a5298);
-  color:white;
-  padding:20px;
+.container {
+  max-width: 700px;
+  margin: auto;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
 }
 
-textarea{
-  width:85%;
-  max-width:500px;
-  height:120px;
-  padding:10px;
-  border-radius:10px;
-  border:2px solid #ccc;
+textarea {
+  width: 100%;
+  height: 120px;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 16px;
 }
 
-button{
-  margin-top:10px;
-  padding:12px 20px;
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-  font-weight:bold;
+button {
+  margin-top: 10px;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: #3aa6b9;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
 }
 
-.btn-analisar{
-  background:#4facfe;
-  color:white;
+.exemplos button {
+  margin: 5px;
+  background: #6ec1e4;
 }
 
-.resultado{
-  margin:20px auto;
-  max-width:500px;
-  padding:15px;
-  border-radius:10px;
+#resultado {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 10px;
 }
 
-.barra{
-  width:85%;
-  max-width:500px;
-  height:15px;
-  background:#ddd;
-  margin:10px auto;
-  border-radius:10px;
+#barraContainer {
+  background: #ddd;
+  border-radius: 10px;
+  margin-top: 10px;
 }
 
-.progresso{
-  height:100%;
-  width:0%;
-  border-radius:10px;
-  transition:0.5s;
+#barra {
+  height: 20px;
+  border-radius: 10px;
+  width: 0%;
 }
 
-.botoes-exemplo{
-  display:flex;
-  justify-content:center;
-  gap:10px;
-  flex-wrap:wrap;
-}
-
-.botoes-exemplo button{
-  background:#4facfe;
-  color:white;
-}
-
-.dicas-box{
-  display:none;
-  background:#fff3cd;
-  margin:15px auto;
-  padding:15px;
-  border-radius:10px;
-  max-width:400px;
-  text-align:left;
+#dicas {
+  display: none;
+  margin-top: 10px;
+  background: #fff3cd;
+  padding: 10px;
+  border-radius: 10px;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-<h1>🛡️ ESCUDO DIGITAL</h1>
-<p>Identifique golpes com segurança</p>
-</header>
+<div class="container">
 
-<h3>Cole a mensagem:</h3>
+<h2>🔰 Escudo Digital</h2>
+
+<p><b>Cole a mensagem:</b></p>
 <textarea id="mensagem"></textarea>
 
-<br>
-<button class="btn-analisar" onclick="analisar()">🔍 ANALISAR</button>
+<button onclick="analisar()">🔍 Analisar</button>
 
-<div class="barra"><div id="barra" class="progresso"></div></div>
-<div id="resultado" class="resultado"></div>
+<div id="barraContainer">
+  <div id="barra"></div>
+</div>
+
+<div id="resultado"></div>
 
 <h3>Exemplos de golpes</h3>
-
-<div class="botoes-exemplo">
-<button onclick="exemploPremio()">🎁 Golpe de premiação</button>
-<button onclick="exemploBanco()">🏦 Golpe bancário</button>
-<button onclick="exemploFake()">📢 Fake news</button>
+<div class="exemplos">
+<button onclick="exemplo('premio')">🎁 Golpe de premiação</button>
+<button onclick="exemplo('banco')">🏦 Golpe bancário</button>
+<button onclick="exemplo('fake')">📢 Fake news</button>
 </div>
 
 <br>
-<button onclick="toggleDicas()">🛡️ Ver dicas de segurança</button>
+<button onclick="toggleDicas()">💡 Ver dicas de segurança</button>
 
-<div id="dicas" class="dicas-box">
-<ul>
-<li>Nunca envie CPF, senha ou código</li>
-<li>Desconfie de urgência</li>
-<li>Não clique em links desconhecidos</li>
-<li>Bancos não pedem dados por mensagem</li>
-<li>Peça ajuda se tiver dúvida</li>
-</ul>
+<div id="dicas">
+Não clique em links desconhecidos.<br>
+Nunca envie códigos ou senhas.<br>
+Desconfie de urgência.<br>
+Confirme sempre com fontes oficiais.
+</div>
+
 </div>
 
 <script>
 
-function normalizar(t){
-return t.toLowerCase()
-.normalize("NFD")
-.replace(/[\u0300-\u036f]/g,"");
+function normalizar(txt) {
+  return txt.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
-function analisar(){
+function aleatorio(lista) {
+  return lista[Math.floor(Math.random() * lista.length)];
+}
+
+function analisar() {
 
 let texto = normalizar(document.getElementById("mensagem").value);
 
 let score = 0;
-let motivos = [];
+let resultado = "";
+
+// função base
+function detectar(regex, pontos, msg) {
+  let match = texto.match(regex);
+  if (match) {
+    score += pontos * match.length;
+    resultado += msg + " (" + match.length + "x)<br>";
+  }
+}
 
 // 🔴 ALTO RISCO
-let alto = [
-"pix urgente","chave pix inválida","pagamento pendente pix",
-"transferência via pix","envie o pix agora","código do whatsapp",
-"código de verificação","token de acesso","confirme seu login",
-"redefina sua senha agora","dados do cartão","cvv do cartão",
-"banco solicitando confirmação","acesso suspeito detectado",
-"sua conta foi invadida"
-];
+detectar(/pix|senha|codigo|cartao|cvv/g, 6, "🔒 Dados sensíveis");
 
 // 🟡 MÉDIO
-let medio = [
-"ação imediata necessária","sua conta será afetada","acesso temporário liberado",
-"confirmação urgente","sistema detectou atividade","tentativa de login",
-"atualização de segurança","revisão obrigatória","validação pendente",
-"acesso restrito","notificação importante","sua conta precisa de atenção",
-"processo de verificação","autenticação pendente","alerta automático"
-];
+detectar(/urgente|agora|imediato|rapido/g, 3, "⚠️ Urgência");
+detectar(/confirme|verifique|atualize/g, 3, "📋 Ação obrigatória");
 
 // 🟠 LEVE
-let leve = [
-"promoção especial","oferta exclusiva hoje","desconto imperdível",
-"novidade pra você","veja agora","acesso liberado","confira já",
-"só hoje","recomendado pra você","conteúdo exclusivo","você pode gostar",
-"oportunidade limitada","vantagem especial","oferta personalizada","não perca"
-];
+detectar(/oferta|promocao|ganhe|desconto/g, 2, "💰 Marketing suspeito");
 
-// 🟢 NORMAL (reduz erro)
+// 🔗 LINKS
+detectar(/http|www|\.com|\.br/g, 4, "🔗 Link suspeito");
+
+// 📲 WHATSAPP
+detectar(/codigo do whatsapp|codigo de verificacao/g, 6, "📲 Golpe de código");
+
+// 🔥 FAKE NEWS
+detectar(/compartilhe|divulgue|envie para todos/g, 3, "📢 Incentivo a compartilhar");
+detectar(/antes que apaguem|vai sumir|removido/g, 4, "⚠️ Pressão de censura");
+detectar(/midia nao mostra|verdade escondida/g, 4, "🌐 Teoria suspeita");
+
+// 🟢 BAIXO RISCO
+detectar(/reuniao|suporte|atendimento|confirmacao/g, -1, "✔ Linguagem normal");
+
+// 🚨 COMBINAÇÕES
+
+if (texto.match(/pix/) && texto.match(/urgente|agora/)) {
+  score += 8;
+  resultado += "🚨 PIX + urgência<br>";
+}
+
+if (
+  texto.match(/compartilhe|divulgue/) &&
+  texto.match(/urgente|agora|antes que/)
+) {
+  score += 6;
+  resultado += "🚨 Compartilhamento forçado<br>";
+}
+
+// 📊 PORCENTAGEM
+let porcentagem = Math.min(100, score * 10);
+
+// 🎨 BARRA
+let barra = document.getElementById("barra");
+barra.style.width = porcentagem + "%";
+
+if (porcentagem < 30) barra.style.background = "green";
+else if (porcentagem < 70) barra.style.background = "orange";
+else barra.style.background = "red";
+
+// 💬 FRASES HUMANAS
+
 let baixo = [
-"reunião online","link da reunião","arquivo anexo","encaminhamento",
-"atualização do sistema","status do pedido","confirmação de presença",
-"horário marcado","envio realizado","suporte técnico",
-"atendimento ao cliente","contato realizado","retorno solicitado",
-"informação adicional","acompanhamento do processo"
+"🟢 Tudo parece normal por aqui.",
+"🟢 Mensagem tranquila, nada suspeito.",
+"🟢 Pode ficar tranquilo, não há sinais de golpe."
 ];
 
-// DETECTAR
-function verificar(lista, pontos, tipo){
-lista.forEach(p=>{
-if(texto.includes(p)){
-score += pontos;
-motivos.push(tipo+": "+p);
-}
-});
-}
+let leve = [
+"🟠 Algo não está totalmente certo aqui.",
+"🟠 Melhor analisar com mais calma.",
+"🟠 Pode ser suspeito, fique atento."
+];
 
-// EXECUÇÃO
-verificar(alto,6,"🔴 Alto risco");
-verificar(medio,3,"🟡 Médio risco");
-verificar(leve,1,"🟠 Marketing");
-verificar(baixo,-2,"🟢 Normal");
+let medio = [
+"🟡 Algo não está certo aqui.",
+"🟡 Melhor não confiar nessa mensagem.",
+"🟡 Essa mensagem pode estar tentando te enganar."
+];
 
-// 🔥 CONTEXTO INTELIGENTE
-if(texto.includes("pix") && texto.includes("urgente")){
-score += 8;
-motivos.push("🚨 Pix + urgência");
-}
+let alto = [
+"🔴 Isso aqui está com cara de golpe.",
+"🔴 Muito suspeito, melhor evitar.",
+"🔴 Alto risco! Não confie nessa mensagem."
+];
 
-if(texto.includes("senha") && texto.includes("codigo")){
-score += 6;
-motivos.push("🚨 Dados críticos");
-}
+// 📊 CLASSIFICAÇÃO
 
-if(texto.includes("link") && texto.includes("confirmar")){
-score += 5;
-motivos.push("🚨 Link + ação");
-}
+let nivel = "";
+let frase = "";
 
-// LINKS
-if(/http|link|clique/.test(texto)){
-score += 3;
-motivos.push("🔗 Contém link");
-}
-
-// LIMITES
-if(score < 0) score = 0;
-
-let risco = Math.min(score*4,100);
-
-// CLASSIFICAÇÃO
-let nivel="";
-let cor="";
-
-if(risco >=70){
-nivel="🔴 ALTO RISCO DE GOLPE";
-cor="#ff4d4d";
-}
-else if(risco >=40){
-nivel="🟡 MÉDIO RISCO";
-cor="#ffd633";
-}
-else if(risco >0){
-nivel="🟠 BAIXO RISCO";
-cor="#ffa64d";
-}
-else{
-nivel="🟢 MENSAGEM SEGURA";
-cor="#66cc66";
+if (porcentagem >= 70) {
+  nivel = "🔴 ALTO RISCO";
+  frase = aleatorio(alto);
+} else if (porcentagem >= 40) {
+  nivel = "🟡 MÉDIO RISCO";
+  frase = aleatorio(medio);
+} else if (porcentagem > 0) {
+  nivel = "🟠 RISCO LEVE";
+  frase = aleatorio(leve);
+} else {
+  nivel = "🟢 MENSAGEM SEGURA";
+  frase = aleatorio(baixo);
 }
 
-// BARRA
-document.getElementById("barra").style.width = risco+"%";
-document.getElementById("barra").style.background = cor;
-
-// RESULTADO
+// RESULTADO FINAL
 document.getElementById("resultado").innerHTML =
-"<b>"+nivel+"</b><br><br>Risco: "+risco+"%<br><br>"+motivos.join("<br>");
-
-document.getElementById("resultado").style.background = cor;
+"<b>" + nivel + " (" + porcentagem + "%)</b><br><br>" +
+"<b>" + frase + "</b><br><br>" +
+resultado +
+"<br><b>Dica:</b> Não clique em links e não envie dados.";
 
 }
 
-// EXEMPLOS
-function exemploPremio(){
-document.getElementById("mensagem").value =
-"Parabéns! Você ganhou um prêmio, envie seu CPF e pix urgente!";
-analisar();
+// BOTÕES
+
+function exemplo(tipo) {
+
+let msg = "";
+
+if (tipo == "premio") {
+msg = "Parabéns! Você ganhou um prêmio, clique agora!";
 }
 
-function exemploBanco(){
-document.getElementById("mensagem").value =
-"URGENTE: Sua conta foi invadida, confirme seu login agora!";
-analisar();
+if (tipo == "banco") {
+msg = "Seu banco detectou problema, envie seu código urgente.";
 }
 
-function exemploFake(){
-document.getElementById("mensagem").value =
-"Compartilhe antes que apaguem essa informação!";
+if (tipo == "fake") {
+msg = "Compartilhe antes que apaguem essa informação!";
+}
+
+document.getElementById("mensagem").value = msg;
 analisar();
 }
 
 // DICAS
-function toggleDicas(){
+
+function toggleDicas() {
 let d = document.getElementById("dicas");
-d.style.display = d.style.display==="none"?"block":"none";
+d.style.display = d.style.display === "none" ? "block" : "none";
 }
 
 </script>
