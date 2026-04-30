@@ -14,7 +14,7 @@ padding:20px;
 }
 
 .container{
-max-width:700px;
+max-width:720px;
 margin:auto;
 background:#fff;
 padding:25px;
@@ -26,8 +26,8 @@ textarea{
 width:100%;
 height:120px;
 resize:none;
-border-radius:10px;
 padding:10px;
+border-radius:10px;
 font-size:16px;
 }
 
@@ -45,17 +45,13 @@ cursor:pointer;
 margin-top:20px;
 padding:15px;
 border-radius:10px;
-animation:fade 0.3s ease;
 }
 
 .baixo{background:#c8e6c9;}
 .medio{background:#fff9c4;}
 .alto{background:#ffcdd2;}
 
-@keyframes fade{
-from{opacity:0; transform:translateY(10px);}
-to{opacity:1; transform:translateY(0);}
-}
+.small{font-size:12px;opacity:0.7;}
 </style>
 </head>
 
@@ -64,10 +60,7 @@ to{opacity:1; transform:translateY(0);}
 <div class="container">
 
 <h1>🛡️ Escudo Digital</h1>
-
-<p style="font-size:14px;opacity:0.8;">
-Detecta golpes e mensagens suspeitas de forma simples e clara.
-</p>
+<p class="small">Analisa mensagens e identifica possíveis golpes de forma simples.</p>
 
 <textarea id="mensagem" placeholder="Digite ou cole a mensagem..."></textarea>
 
@@ -105,7 +98,11 @@ Detecta golpes e mensagens suspeitas de forma simples e clara.
 // 🧠 MEMÓRIA
 // =====================
 function carregarMemoria(){
+try{
 return JSON.parse(localStorage.getItem("memoriaIA")) || [];
+}catch{
+return [];
+}
 }
 
 function salvarMemoria(mem){
@@ -113,27 +110,26 @@ localStorage.setItem("memoriaIA", JSON.stringify(mem));
 }
 
 // =====================
-// 🧠 IA PRINCIPAL (CORRIGIDA)
+// 🧠 IA PRINCIPAL
 // =====================
 function analisar(){
 
 try{
 
-let campo = document.getElementById("mensagem");
-let resultado = document.getElementById("resultado");
+const campo = document.getElementById("mensagem");
+const resultado = document.getElementById("resultado");
 
 if(!campo || !resultado) return;
 
-let input = campo.value;
+const input = campo.value;
 
-// evita erro
 if(!input || input.trim()===""){
 resultado.className="result medio";
 resultado.innerHTML="<h3>Digite uma mensagem</h3>";
 return;
 }
 
-// normalização
+// NORMALIZAÇÃO
 let texto = input.toLowerCase()
 .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
 .replace(/[@4]/g,"a")
@@ -147,60 +143,58 @@ let texto = input.toLowerCase()
 let risco=0;
 let motivos=[];
 let intencoes=new Set();
+let gatilhos=0;
 
-// padrões
-if(/cpf|senha|codigo/.test(texto)){
-risco+=30;
-motivos.push("Pedindo dados pessoais");
-intencoes.add("Roubo de dados");
+// PADRÕES
+const padroes = [
+{r:/cpf|senha|codigo|cartao/,p:30,m:"Pedido de dados pessoais",i:"Roubo de dados"},
+{r:/pix|transferencia|pagamento/,p:30,m:"Pedido de dinheiro",i:"Financeiro"},
+{r:/urgente|agora|rapido/,p:20,m:"Pressão para agir rápido",i:"Pressão"},
+{r:/bloqueado|suspenso/,p:25,m:"Tentativa de assustar",i:"Medo"},
+{r:/clique|link|http/,p:25,m:"Link suspeito",i:"Redirecionamento"},
+{r:/ganhou|premio|gratis/,p:25,m:"Promessa falsa",i:"Isca"}
+];
+
+padroes.forEach(p=>{
+if(p.r.test(texto)){
+risco+=p.p;
+motivos.push(p.m);
+intencoes.add(p.i);
+gatilhos++;
 }
+});
 
-if(/pix|pagamento/.test(texto)){
-risco+=30;
-motivos.push("Pedido de dinheiro");
-intencoes.add("Financeiro");
-}
-
-if(/urgente|agora/.test(texto)){
-risco+=20;
-motivos.push("Pressão");
-}
-
-if(/bloqueado/.test(texto)){
-risco+=25;
-motivos.push("Ameaça");
-}
-
-if(/clique|link/.test(texto)){
-risco+=25;
-motivos.push("Link suspeito");
-}
-
-// combinações
+// COMBINAÇÕES
 if(texto.includes("pix") && texto.includes("urgente")){
 risco+=40;
 motivos.push("PIX + urgência");
 }
 
-// aprendizado
+// INTENSIDADE
+if(gatilhos>=3){
+risco+=15;
+motivos.push("Muitos sinais suspeitos");
+}
+
+// APRENDIZADO
 let memoria = carregarMemoria();
 
 memoria.forEach(item=>{
-if(texto.includes(item.texto.substring(0,15))){
+if(texto.includes(item.texto.substring(0,20))){
 if(item.golpe){
-risco+=25;
+risco+=20;
 motivos.push("Aprendido com uso");
 }else{
-risco-=15;
+risco-=10;
 }
 }
 });
 
-// limites
+// LIMITES
 if(risco>100) risco=100;
 if(risco<0) risco=0;
 
-// classificação
+// FRASES HUMANAS
 let frase,classe;
 
 if(risco<30){
@@ -208,7 +202,7 @@ frase="Mensagem tranquila.";
 classe="baixo";
 }
 else if(risco<70){
-frase="Algo estranho aqui.";
+frase="Tem algo estranho aqui.";
 classe="medio";
 }
 else{
@@ -216,7 +210,7 @@ frase="Isso parece golpe!";
 classe="alto";
 }
 
-// resultado
+// RESULTADO
 resultado.className="result "+classe;
 
 resultado.innerHTML=`
@@ -224,7 +218,7 @@ resultado.innerHTML=`
 <p><b>Risco:</b> ${risco}%</p>
 <p><b>Motivos:</b> ${motivos.join(", ") || "Nenhum"}</p>
 <p><b>Intenção:</b> ${[...intencoes].join(", ") || "Nenhuma"}</p>
-<p style="font-size:12px;">Peça ajuda se tiver dúvida.</p>
+<p class="small">Se tiver dúvida, peça ajuda a alguém de confiança.</p>
 `;
 
 }catch(e){
@@ -235,11 +229,13 @@ document.getElementById("resultado").innerHTML="<h3>Erro ao analisar</h3>";
 }
 
 // =====================
-// 🧠 FEEDBACK
+// 🧠 FEEDBACK (APRENDER)
 // =====================
 function feedback(eGolpe){
 
 let texto = document.getElementById("mensagem").value.toLowerCase();
+
+if(!texto) return;
 
 let memoria = carregarMemoria();
 
@@ -247,7 +243,7 @@ memoria.push({texto:texto,golpe:eGolpe});
 
 salvarMemoria(memoria);
 
-document.getElementById("resultado").innerHTML += "<p>✔ IA aprendeu!</p>";
+document.getElementById("resultado").innerHTML += "<p class='small'>✔ IA aprendeu com isso</p>";
 }
 
 // =====================
@@ -256,7 +252,7 @@ document.getElementById("resultado").innerHTML += "<p>✔ IA aprendeu!</p>";
 function simular(){
 let golpes=[
 "Envie seu CPF agora",
-"PIX urgente",
+"PIX urgente necessário",
 "Você ganhou prêmio clique aqui",
 "Sua conta será bloqueada"
 ];
@@ -266,13 +262,13 @@ golpes[Math.floor(Math.random()*golpes.length)];
 }
 
 // =====================
-// 🎮 TREINO
+// 🎮 TREINAMENTO
 // =====================
 let pontuacao=0;
 let rodada=0;
 
 const treinos=[
-{texto:"Reunião às 10h",seguro:true},
+{texto:"Reunião amanhã",seguro:true},
 {texto:"Envie seu CPF agora",seguro:false},
 {texto:"PIX urgente",seguro:false},
 {texto:"Documento enviado",seguro:true}
@@ -283,6 +279,7 @@ let treinoAtual;
 function novoTreino(){
 treinoAtual = treinos[Math.floor(Math.random()*treinos.length)];
 document.getElementById("treinoTexto").innerText = treinoAtual.texto;
+document.getElementById("feedbackTreino").innerText="";
 }
 
 function resposta(v){
