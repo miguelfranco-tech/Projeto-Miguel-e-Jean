@@ -66,7 +66,7 @@ to{opacity:1; transform:translateY(0);}
 <h1>🛡️ Escudo Digital</h1>
 
 <p style="font-size:14px;opacity:0.8;">
-Detecta golpes, fake news e mensagens suspeitas de forma simples e clara para sua segurança.
+Detecta golpes e mensagens suspeitas de forma simples e clara.
 </p>
 
 <textarea id="mensagem" placeholder="Digite ou cole a mensagem..."></textarea>
@@ -86,14 +86,7 @@ Detecta golpes, fake news e mensagens suspeitas de forma simples e clara para su
 
 <hr>
 
-<h3>⚠️ Exemplos de golpes</h3>
-<button onclick="ex1()">🎁 Prêmio</button>
-<button onclick="ex2()">🏦 Banco</button>
-<button onclick="ex3()">📢 Fake News</button>
-
-<hr>
-
-<h3>🧠 Treinamento para não cair em golpes</h3>
+<h3>🧠 Treinamento</h3>
 <p id="treinoTexto">Clique em nova</p>
 
 <button onclick="resposta(true)">✔ Confiar</button>
@@ -109,7 +102,7 @@ Detecta golpes, fake news e mensagens suspeitas de forma simples e clara para su
 <script>
 
 // =====================
-// 🧠 MEMÓRIA IA
+// 🧠 MEMÓRIA
 // =====================
 function carregarMemoria(){
 return JSON.parse(localStorage.getItem("memoriaIA")) || [];
@@ -120,12 +113,27 @@ localStorage.setItem("memoriaIA", JSON.stringify(mem));
 }
 
 // =====================
-// 🧠 IA PRINCIPAL
+// 🧠 IA PRINCIPAL (CORRIGIDA)
 // =====================
 function analisar(){
 
-let input = document.getElementById("mensagem").value;
+try{
 
+let campo = document.getElementById("mensagem");
+let resultado = document.getElementById("resultado");
+
+if(!campo || !resultado) return;
+
+let input = campo.value;
+
+// evita erro
+if(!input || input.trim()===""){
+resultado.className="result medio";
+resultado.innerHTML="<h3>Digite uma mensagem</h3>";
+return;
+}
+
+// normalização
 let texto = input.toLowerCase()
 .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
 .replace(/[@4]/g,"a")
@@ -136,44 +144,45 @@ let texto = input.toLowerCase()
 .replace(/\s+/g," ")
 .trim();
 
-let risco = 0;
-let motivos = [];
-let intencoes = new Set();
-let gatilhos = 0;
+let risco=0;
+let motivos=[];
+let intencoes=new Set();
 
-// PADRÕES
-const padroes = [
-{r:/cpf|senha|codigo|cartao/,p:30,m:"Pedindo dados pessoais",i:"Roubo de dados"},
-{r:/pix|transferencia|pagamento/,p:30,m:"Pedindo dinheiro",i:"Financeiro"},
-{r:/urgente|agora/,p:20,m:"Pressão para agir rápido",i:"Pressão"},
-{r:/bloqueado|suspenso/,p:25,m:"Tentando assustar",i:"Medo"},
-{r:/clique|link|http/,p:25,m:"Link suspeito",i:"Redirecionamento"},
-{r:/ganhou|premio|gratis/,p:25,m:"Promessa falsa",i:"Isca"}
-];
-
-padroes.forEach(p=>{
-if(p.r.test(texto)){
-risco+=p.p;
-motivos.push(p.m);
-intencoes.add(p.i);
-gatilhos++;
+// padrões
+if(/cpf|senha|codigo/.test(texto)){
+risco+=30;
+motivos.push("Pedindo dados pessoais");
+intencoes.add("Roubo de dados");
 }
-});
 
-// COMBOS
+if(/pix|pagamento/.test(texto)){
+risco+=30;
+motivos.push("Pedido de dinheiro");
+intencoes.add("Financeiro");
+}
+
+if(/urgente|agora/.test(texto)){
+risco+=20;
+motivos.push("Pressão");
+}
+
+if(/bloqueado/.test(texto)){
+risco+=25;
+motivos.push("Ameaça");
+}
+
+if(/clique|link/.test(texto)){
+risco+=25;
+motivos.push("Link suspeito");
+}
+
+// combinações
 if(texto.includes("pix") && texto.includes("urgente")){
 risco+=40;
 motivos.push("PIX + urgência");
 }
 
-if(texto.includes("cpf") && texto.includes("bloqueado")){
-risco+=40;
-motivos.push("Dados + ameaça");
-}
-
-// =====================
-// 🧠 APRENDIZADO
-// =====================
+// aprendizado
 let memoria = carregarMemoria();
 
 memoria.forEach(item=>{
@@ -187,13 +196,12 @@ risco-=15;
 }
 });
 
-// LIMITES
-if(risco<0) risco=0;
+// limites
 if(risco>100) risco=100;
+if(risco<0) risco=0;
 
-// FRASES HUMANAS
-let frase;
-let classe;
+// classificação
+let frase,classe;
 
 if(risco<30){
 frase="Mensagem tranquila.";
@@ -208,16 +216,21 @@ frase="Isso parece golpe!";
 classe="alto";
 }
 
-// RESULTADO
-document.getElementById("resultado").className="result "+classe;
+// resultado
+resultado.className="result "+classe;
 
-document.getElementById("resultado").innerHTML=`
+resultado.innerHTML=`
 <h3>${frase}</h3>
 <p><b>Risco:</b> ${risco}%</p>
 <p><b>Motivos:</b> ${motivos.join(", ") || "Nenhum"}</p>
 <p><b>Intenção:</b> ${[...intencoes].join(", ") || "Nenhuma"}</p>
-<p style="font-size:12px;">Se tiver dúvida, peça ajuda a alguém de confiança.</p>
+<p style="font-size:12px;">Peça ajuda se tiver dúvida.</p>
 `;
+
+}catch(e){
+console.error(e);
+document.getElementById("resultado").innerHTML="<h3>Erro ao analisar</h3>";
+}
 
 }
 
@@ -234,7 +247,7 @@ memoria.push({texto:texto,golpe:eGolpe});
 
 salvarMemoria(memoria);
 
-document.getElementById("resultado").innerHTML += "<p>✔ IA aprendeu com isso!</p>";
+document.getElementById("resultado").innerHTML += "<p>✔ IA aprendeu!</p>";
 }
 
 // =====================
@@ -243,7 +256,7 @@ document.getElementById("resultado").innerHTML += "<p>✔ IA aprendeu com isso!<
 function simular(){
 let golpes=[
 "Envie seu CPF agora",
-"PIX urgente necessário",
+"PIX urgente",
 "Você ganhou prêmio clique aqui",
 "Sua conta será bloqueada"
 ];
@@ -288,13 +301,6 @@ document.getElementById("feedbackTreino").innerText="❌ Errou!";
 document.getElementById("placar").innerText=
 "Pontuação: "+pontuacao+" / "+rodada;
 }
-
-// =====================
-// EXEMPLOS
-// =====================
-function ex1(){document.getElementById("mensagem").value="Você ganhou prêmio clique aqui";}
-function ex2(){document.getElementById("mensagem").value="Sua conta será bloqueada envie CPF";}
-function ex3(){document.getElementById("mensagem").value="Compartilhe antes que apaguem";}
 
 </script>
 
