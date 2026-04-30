@@ -1,74 +1,66 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Escudo Digital</title>
 
 <style>
 body{
-  font-family: Arial;
-  background: linear-gradient(135deg,#e0f2fe,#f8fafc);
-  text-align:center;
-  padding:20px;
+font-family: Arial;
+background: linear-gradient(135deg,#dbeafe,#f1f5f9);
+text-align:center;
+margin:0;
+padding:20px;
 }
 
 .container{
-  max-width:700px;
-  margin:auto;
-  background:white;
-  padding:20px;
-  border-radius:15px;
-  box-shadow:0 10px 25px rgba(0,0,0,0.1);
+max-width:750px;
+margin:auto;
+background:white;
+padding:25px;
+border-radius:15px;
+box-shadow:0 10px 25px rgba(0,0,0,0.1);
 }
 
+h1{color:#2563eb;}
+
 textarea{
-  width:100%;
-  height:120px;
-  border-radius:10px;
-  padding:10px;
-  border:2px solid #cbd5e1;
-  resize:none;
-  box-sizing:border-box;
+width:100%;
+height:130px;
+resize:none;
+padding:12px;
+border-radius:10px;
+border:1px solid #ccc;
+font-size:16px;
+box-sizing:border-box;
 }
 
 button{
-  margin-top:10px;
-  padding:12px;
-  border:none;
-  border-radius:10px;
-  background:#0284c7;
-  color:white;
-  cursor:pointer;
+margin:8px;
+padding:10px 18px;
+border:none;
+border-radius:10px;
+background:#3b82f6;
+color:white;
+font-size:15px;
+cursor:pointer;
+transition:0.2s;
 }
 
-button:hover{opacity:0.9;}
+button:hover{transform:scale(1.05);}
 
-#barraContainer{
-  background:#e2e8f0;
-  border-radius:10px;
-  margin-top:10px;
+.result{
+margin-top:20px;
+padding:18px;
+border-radius:12px;
 }
 
-#barra{
-  height:20px;
-  border-radius:10px;
-  width:0%;
-  transition:0.6s;
-}
+.baixo{background:#dcfce7;}
+.medio{background:#fef9c3;}
+.alto{background:#fee2e2;}
 
-#resultado{
-  margin-top:20px;
-  padding:15px;
-  border-radius:12px;
-  background:#f8fafc;
-  display:none;
-}
-
-.destaque{
-  background:#fecaca;
-  padding:2px;
-  border-radius:4px;
-}
+.small{font-size:14px;opacity:0.8;}
 </style>
 </head>
 
@@ -77,251 +69,174 @@ button:hover{opacity:0.9;}
 <div class="container">
 
 <h1>🛡️ Escudo Digital</h1>
-<p>Detecta golpes, fake news e tentativas de manipulação digital.</p>
 
-<textarea id="mensagem" placeholder="Cole a mensagem aqui..."></textarea>
+<p class="small">
+Detecta golpes, fake news e tentativas de manipulação digital,
+analisando mensagens de forma simples para proteger você.
+</p>
+
+<textarea id="msg" placeholder="Cole a mensagem aqui..."></textarea>
 
 <br>
-<button onclick="analisar()">🔍 Analisar</button>
+
+<button onclick="analisar()">🔎 Analisar mensagem</button>
 <button onclick="simular()">⚡ Simular golpe</button>
 
-<div id="barraContainer">
-  <div id="barra"></div>
-</div>
+<div id="res" class="result"></div>
 
-<div id="resultado"></div>
+<hr>
 
-<h3>Exemplos</h3>
-<button onclick="exemplo('premio')">🎁 Premiação</button>
-<button onclick="exemplo('banco')">🏦 Banco</button>
-<button onclick="exemplo('fake')">📢 Fake News</button>
+<h3>⚠️ Exemplos de golpes</h3>
+<button onclick="setMsg('Você ganhou um prêmio! Clique aqui')">🎁 Premiação</button>
+<button onclick="setMsg('Sua conta será bloqueada, envie CPF')">🏦 Banco</button>
+<button onclick="setMsg('Compartilhe antes que apaguem isso')">📢 Fake News</button>
 
-<h3>🧠 Treinar contra golpes</h3>
-<p id="simMsg"></p>
+<hr>
+
+<h3>🧠 Treinamento para não cair em golpes</h3>
+<p id="treino">Clique em nova</p>
+
 <button onclick="responder(true)">✔ Confiar</button>
 <button onclick="responder(false)">❌ Desconfiar</button>
-<p id="simRes"></p>
-<p id="placar"></p>
-<button onclick="novaSim()">🔄 Nova</button>
+<br>
+<button onclick="novoTreino()">🔄 Nova</button>
 
 </div>
 
 <script>
 
-// normalizar
-function normalizar(t){
-return t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
-}
+// FRASES HUMANAS
+const baixo = ["Mensagem tranquila.","Parece seguro.","Nada perigoso aqui."];
+const medio = ["Algo estranho aqui.","Melhor ter cuidado.","Não parece confiável."];
+const alto = ["Isso tem cara de golpe.","Muito suspeito!","Não confie nisso."];
 
-// memória IA
-function carregarMemoria(){
-return JSON.parse(localStorage.getItem("memoriaIA") || "[]");
-}
+// PALAVRAS COM PESO
+const pesos = [
+{p:["cpf","senha","código","dados"],v:40,t:"dados"},
+{p:["pix","transferência","pagamento"],v:40,t:"ganho"},
+{p:["urgente","agora","rápido"],v:25,t:"urgencia"},
+{p:["bloqueado","suspenso","cancelado"],v:35,t:"medo"},
+{p:["clique aqui","link","acessar"],v:25,t:"link"},
+{p:["ganhou","prêmio","promoção"],v:25,t:"ganho"},
+{p:["compartilhe","repasse"],v:20,t:"fake"}
+];
 
-function salvarMemoria(mem){
-localStorage.setItem("memoriaIA", JSON.stringify(mem));
-}
+// TREINAMENTO
+const treinoList = [
+{t:"Reunião amanhã",s:true},
+{t:"Envie seu CPF agora",s:false},
+{t:"Você ganhou dinheiro",s:false},
+{t:"Relatório pronto",s:true},
+{t:"PIX urgente agora",s:false},
+{t:"Confirma presença",s:true}
+];
 
-function aprender(texto, score){
-let mem = carregarMemoria();
-if(score > 60) mem.push(texto);
-if(mem.length > 50) mem.shift();
-salvarMemoria(mem);
-}
+let atual;
 
 // ANALISAR
 function analisar(){
 
-let original = document.getElementById("mensagem").value;
-let texto = normalizar(original);
-let memoria = carregarMemoria();
-
-if(!texto.trim()){
-alert("Digite algo");
-return;
-}
-
-let score=0;
+let texto = document.getElementById("msg").value.toLowerCase();
+let risco=0;
 let motivos=[];
-let explicacao=[];
-let palavras=[];
+let intencoes={};
 
-// padrões básicos
-const padroes=[
-["pix",30],["senha",30],["codigo",20],["cpf",25],
-["urgente",10],["agora",10],
-["hackeada",25],["invadida",25],
-["clique aqui",10],["link",8],
-["compartilhe",15],["midia",15]
-];
-
-padroes.forEach(p=>{
-if(texto.includes(p[0])){
-score+=p[1];
-palavras.push(p[0]);
+pesos.forEach(grupo=>{
+grupo.p.forEach(p=>{
+if(texto.includes(p)){
+risco+=grupo.v;
+motivos.push(explicar(p));
+intencoes[grupo.t]=true;
 }
 });
-
-// 🚨 dados sensíveis avançado
-if(
-texto.match(/(envie|mande|informe|precisamos|digite|confirme)/) &&
-texto.match(/(cpf|senha|codigo|token|dados|cartao)/)
-){
-score+=45;
-motivos.push("🚨 Pedido de dados sensíveis");
-explicacao.push("A mensagem solicita informações pessoais");
-}
-
-// 🚨 golpe bancário
-if(
-texto.includes("conta") &&
-(texto.includes("hackeada")||texto.includes("invadida")||texto.includes("bloqueada")) &&
-(texto.includes("envie")||texto.includes("confirme"))
-){
-score+=40;
-motivos.push("🚨 Golpe bancário clássico");
-}
-
-// 🔁 memória IA
-memoria.forEach(frase=>{
-let palavrasMem = frase.split(" ");
-let match = palavrasMem.filter(p=>texto.includes(p));
-let similaridade = match.length / palavrasMem.length;
-
-if(similaridade > 0.4){
-score+=20;
-explicacao.push("🔁 Similar a golpe anterior");
-}
 });
 
-if(score<0) score=0;
-
-let porcentagem=Math.min(100,score);
-
-// barra
-let barra=document.getElementById("barra");
-barra.style.width=porcentagem+"%";
-
-if(porcentagem<30) barra.style.background="green";
-else if(porcentagem<70) barra.style.background="orange";
-else barra.style.background="red";
-
-// frases
-let frasesAlta=[
-"🚨 Isso está com cara de golpe!",
-"❌ Não confie nessa mensagem.",
-"⚠️ Muito suspeito!"
-];
-
-let frasesMedia=[
-"🤔 Algo não está certo.",
-"⚠️ Fique atento.",
-"🧐 Pode ser golpe."
-];
-
-let frasesBaixa=[
-"🙂 Parece seguro.",
-"✔ Nada suspeito.",
-"👍 Mensagem comum."
-];
-
-let frase=porcentagem>=70?frasesAlta[Math.floor(Math.random()*3)]
-:porcentagem>=40?frasesMedia[Math.floor(Math.random()*3)]
-:frasesBaixa[Math.floor(Math.random()*3)];
-
-// destacar
-function destacar(txt, palavras){
-let r=txt;
-palavras.forEach(p=>{
-r=r.replace(new RegExp("("+p+")","gi"),'<span class="destaque">$1</span>');
-});
-return r;
+// COMBINAÇÕES PERIGOSAS
+if(texto.includes("pix") && texto.includes("urgente")){
+risco+=40;
+motivos.push("pedido urgente de dinheiro");
 }
 
-let textoDestacado=destacar(original,palavras);
-
-// resultado
-let res=document.getElementById("resultado");
-res.style.display="block";
-
-res.innerHTML=
-"<b>"+porcentagem+"% de risco</b><br><br>"+
-frase+"<br><br>"+
-"<b>Motivos:</b><br>"+(motivos.join("<br>")||"Nenhum")+"<br><br>"+
-"<b>Explicação:</b><br>"+(explicacao.join("<br>")||"Nenhuma")+"<br><br>"+
-"<b>Mensagem:</b><br>"+textoDestacado;
-
-// aprender
-aprender(texto,score);
+if(texto.includes("cpf") && texto.includes("agora")){
+risco+=40;
+motivos.push("pressão para enviar dados");
 }
 
-// simulação
+// LIMITAR
+if(risco>100) risco=100;
+
+// FRASE
+let frase;
+let classe;
+
+if(risco<30){frase=random(baixo);classe="baixo";}
+else if(risco<70){frase=random(medio);classe="medio";}
+else{frase=random(alto);classe="alto";}
+
+// RESULTADO
+document.getElementById("res").className="result "+classe;
+
+document.getElementById("res").innerHTML=`
+<h3>${frase}</h3>
+<p><b>Risco:</b> ${risco}%</p>
+<p><b>O que está acontecendo:</b> ${traduzIntencao(intencoes)}</p>
+<p><b>Motivos:</b> ${motivos.join(", ") || "Nenhum"}</p>
+<p><b>Explicação:</b> ${explicacao(risco,motivos)}</p>
+<p class="small">Se tiver dúvida, peça ajuda para alguém de confiança.</p>
+`;
+
+}
+
+// FUNÇÕES
+function random(arr){return arr[Math.floor(Math.random()*arr.length)];}
+
+function explicar(p){
+if(p=="cpf") return "pedindo seus dados pessoais";
+if(p=="pix") return "pedido de dinheiro";
+if(p=="urgente") return "te apressando";
+if(p=="bloqueado") return "tentando te assustar";
+if(p=="clique aqui") return "link suspeito";
+return p;
+}
+
+function traduzIntencao(i){
+let txt=[];
+if(i.medo) txt.push("tentando te assustar");
+if(i.urgencia) txt.push("te apressando");
+if(i.dados) txt.push("quer seus dados");
+if(i.ganho) txt.push("promessa de vantagem");
+return txt.join(", ") || "não identificado";
+}
+
+function explicacao(r,m){
+if(r<30) return "Mensagem parece normal.";
+if(r<70) return "Tem sinais estranhos: "+m.join(", ");
+return "Mensagem com sinais claros de golpe: "+m.join(", ");
+}
+
+// EXTRAS
+function setMsg(t){document.getElementById("msg").value=t;}
+
 function simular(){
-document.getElementById("mensagem").value=
-"Envie seu CPF urgente para evitar bloqueio da conta";
-analisar();
-}
-
-// exemplos
-function exemplo(t){
-if(t=="premio") document.getElementById("mensagem").value="Você ganhou um prêmio clique aqui";
-if(t=="banco") document.getElementById("mensagem").value="Sua conta foi hackeada envie CPF";
-if(t=="fake") document.getElementById("mensagem").value="Compartilhe antes que a mídia apague";
-analisar();
-}
-
-// treino avançado
-let acertos=0;
-
-let simulacoes=[
-{msg:"Envie seu CPF urgente para liberar sua conta",correto:false},
-{msg:"Sua conta foi invadida, confirme seus dados agora",correto:false},
-{msg:"Clique aqui para receber seu prêmio exclusivo",correto:false},
-{msg:"Ganhe dinheiro fácil sem sair de casa",correto:false},
-{msg:"Precisamos do seu código de verificação",correto:false},
-{msg:"Transferência pendente, envie o pix agora",correto:false},
-{msg:"Compartilhe isso antes que apaguem",correto:false},
-{msg:"Atualize seus dados para evitar bloqueio",correto:false},
-
-{msg:"Reunião amanhã às 14h",correto:true},
-{msg:"Envio do documento confirmado",correto:true},
-{msg:"Seu pedido foi entregue",correto:true},
-{msg:"Horário marcado para atendimento",correto:true},
-{msg:"Atualização do sistema concluída",correto:true},
-{msg:"Link da reunião enviado",correto:true},
-{msg:"Confirmação de presença recebida",correto:true},
-
-{msg:"Confirme suas informações para manter acesso",correto:false},
-{msg:"Detectamos atividade incomum, revise seus dados",correto:false},
-{msg:"Você pode ter um benefício disponível, acesse",correto:false},
-
-{msg:"Relatório atualizado disponível",correto:true}
+let lista=[
+"Envie CPF agora ou será bloqueado",
+"PIX urgente para liberar prêmio",
+"Clique aqui para atualizar conta",
+"Compartilhe isso antes que apaguem"
 ];
+setMsg(random(lista));
+}
 
-function novaSim(){
-let s=simulacoes[Math.floor(Math.random()*simulacoes.length)];
-window.simAtual=s;
-document.getElementById("simMsg").innerText=s.msg;
-document.getElementById("simRes").innerText="";
+// TREINO
+function novoTreino(){
+atual=random(treinoList);
+document.getElementById("treino").innerText=atual.t;
 }
 
 function responder(r){
-let correta=window.simAtual.correto;
-
-if(r===correta){
-acertos++;
-document.getElementById("simRes").innerText="✅ Boa! Você acertou.";
-}else{
-document.getElementById("simRes").innerText=
-correta
-? "❌ Era segura, nem tudo é golpe."
-: "🚨 Era golpe! Tinha sinais suspeitos.";
+if(!atual){alert("Clique em nova");return;}
+alert(r==atual.s?"✔ Acertou":"❌ Errou");
 }
-
-document.getElementById("placar").innerText="Acertos: "+acertos;
-}
-
-novaSim();
 
 </script>
 
