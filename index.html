@@ -7,51 +7,47 @@
 
 <style>
 body{
-font-family: Arial;
-background: linear-gradient(135deg,#e3f2fd,#f5f7fa);
-text-align:center;
-padding:20px;
+  font-family: Arial;
+  background: linear-gradient(135deg,#e3f2fd,#f5f7fa);
+  text-align:center;
+  padding:20px;
 }
 
 .container{
-max-width:720px;
-margin:auto;
-background:#fff;
-padding:25px;
-border-radius:15px;
-box-shadow:0 10px 30px rgba(0,0,0,0.1);
+  max-width:600px;
+  margin:auto;
+}
+
+h1{
+  color:#1565c0;
 }
 
 textarea{
-width:100%;
-height:120px;
-resize:none;
-padding:10px;
-border-radius:10px;
-font-size:16px;
+  width:100%;
+  height:120px;
+  border-radius:10px;
+  padding:10px;
+  font-size:16px;
 }
 
 button{
-margin:5px;
-padding:10px 15px;
-border:none;
-border-radius:10px;
-background:#2196f3;
-color:#fff;
-cursor:pointer;
+  padding:12px 18px;
+  border:none;
+  border-radius:10px;
+  margin:5px;
+  cursor:pointer;
+  background:#2196f3;
+  color:white;
+  font-weight:bold;
 }
 
 .result{
-margin-top:20px;
-padding:15px;
-border-radius:10px;
+  margin-top:20px;
+  background:white;
+  padding:15px;
+  border-radius:10px;
 }
 
-.baixo{background:#c8e6c9;}
-.medio{background:#fff9c4;}
-.alto{background:#ffcdd2;}
-
-.small{font-size:12px;opacity:0.7;}
 </style>
 </head>
 
@@ -60,301 +56,188 @@ border-radius:10px;
 <div class="container">
 
 <h1>🛡️ Escudo Digital</h1>
-<p class="small">Analisa mensagens e ajuda você a não cair em golpes.</p>
+<p>Detecta golpes, fake news e mensagens perigosas.</p>
 
-<textarea id="mensagem" placeholder="Cole ou digite a mensagem aqui..."></textarea>
+<textarea id="mensagem" placeholder="Digite ou cole a mensagem aqui"></textarea>
 
 <br>
-
 <button onclick="analisar()">🔎 Analisar mensagem</button>
-<button onclick="simular()">⚡ Simular golpe</button>
 
-<div id="resultado" class="result"></div>
+<!-- RESULTADO -->
+<div class="result" id="resultado"></div>
 
-<div style="margin-top:10px;">
-<p><b>Isso está correto?</b></p>
-<button onclick="feedback(true)">✔ É golpe</button>
-<button onclick="feedback(false)">👍 É seguro</button>
+<!-- EXEMPLOS -->
+<div style="margin-top:20px;">
+<h3>⚠️ Exemplos de golpes</h3>
+
+<button onclick="exemplo('banco')">🏦 Banco</button>
+<button onclick="exemplo('premio')">🎁 Prêmio</button>
+<button onclick="exemplo('fake')">📢 Fake News</button>
+<button onclick="exemplo('pix')">💸 PIX</button>
+
 </div>
 
-<hr>
+<!-- TREINAMENTO -->
+<div style="margin-top:30px;">
+<h3>🧠 Treinamento para não cair em golpes</h3>
 
-<h3>🎮 Treinamento para não cair em golpes</h3>
-<p id="treinoTexto">Clique em "Nova"</p>
+<p id="treinoTexto"></p>
 
-<button onclick="resposta(true)">✔ Confiar</button>
-<button onclick="resposta(false)">❌ Golpe</button>
-<br>
-<button onclick="novoTreino()">🔄 Nova</button>
+<button onclick="responder(true)">❌ É golpe</button>
+<button onclick="responder(false)">✔ É seguro</button>
 
-<p id="feedbackTreino"></p>
-<p id="placar">🏆 Pontuação: 0 / 0</p>
+<br><br>
+<button onclick="novaPergunta()">🔄 Nova</button>
+
+</div>
 
 </div>
 
 <script>
 
-// =====================
-// 🧠 MEMÓRIA
-// =====================
-function carregarMemoria(){
-try{
-return JSON.parse(localStorage.getItem("memoriaIA")) || [];
-}catch{
-return [];
-}
-}
+// ===================== IA PRINCIPAL =====================
 
-function salvarMemoria(mem){
-try{
-localStorage.setItem("memoriaIA", JSON.stringify(mem));
-}catch{}
-}
-
-// =====================
-// 🧠 ANALISAR
-// =====================
 function analisar(){
 
-const resultado = document.getElementById("resultado");
+let texto = document.getElementById("mensagem").value.toLowerCase();
 
-try{
-
-const input = document.getElementById("mensagem").value;
-
-if(!input || input.trim() === ""){
-resultado.className = "result medio";
-resultado.innerHTML = "Digite uma mensagem primeiro.";
+if(!texto){
+alert("Digite uma mensagem primeiro!");
 return;
 }
 
-// NORMALIZAÇÃO
-let texto = input.toLowerCase();
-
-if(texto.normalize){
-texto = texto.normalize("NFD").replace(/[\u0300-\u036f]/g,"");
-}
-
-texto = texto.replace(/[^a-z0-9\s]/g," ");
-
 let risco = 0;
 let motivos = [];
-let gatilhos = 0;
 
-// PADRÕES
-if(/cpf|senha|codigo/.test(texto)){
-risco+=30; motivos.push("Pedido de dados pessoais"); gatilhos++;
-}
+// padrões perigosos
+const regras = [
+  {p:["cpf","senha","dados","código"],peso:30,m:"Pedido de dados pessoais"},
+  {p:["urgente","agora","imediatamente"],peso:25,m:"Pressão de urgência"},
+  {p:["clique","link"],peso:20,m:"Link suspeito"},
+  {p:["ganhou","prêmio","promoção"],peso:25,m:"Promessa de prêmio"},
+  {p:["pix","transferência"],peso:30,m:"Pedido de dinheiro"},
+  {p:["bloqueado","suspenso"],peso:20,m:"Ameaça de bloqueio"}
+];
 
-if(/pix|transferencia|pagamento/.test(texto)){
-risco+=30; motivos.push("Pedido de dinheiro"); gatilhos++;
-}
-
-if(/urgente|agora/.test(texto)){
-risco+=20; motivos.push("Pressão"); gatilhos++;
-}
-
-if(/bloqueado|suspenso/.test(texto)){
-risco+=25; motivos.push("Ameaça"); gatilhos++;
-}
-
-if(/clique|link|http/.test(texto)){
-risco+=25; motivos.push("Link suspeito"); gatilhos++;
-}
-
-// COMBO
-if(texto.includes("pix") && texto.includes("urgente")){
-risco+=40;
-motivos.push("PIX + urgência");
-}
-
-// INTENSIDADE
-if(gatilhos >= 3){
-risco+=15;
-motivos.push("Muitos sinais suspeitos");
-}
-
-// APRENDIZADO
-let memoria = carregarMemoria();
-memoria.forEach(item=>{
-if(item.texto && texto.includes(item.texto.substring(0,15))){
-if(item.golpe){risco+=20;} else{risco-=10;}
-}
+// analisar
+regras.forEach(r=>{
+  r.p.forEach(palavra=>{
+    if(texto.includes(palavra)){
+      risco += r.peso;
+      motivos.push(r.m);
+    }
+  });
 });
 
+// limite
 if(risco>100) risco=100;
-if(risco<0) risco=0;
 
-// FRASES
-let frase="", classe="", explicacaoHumana="";
+// resultado
+let nivel = "";
+let explicacao = "";
 
-if(risco<30){
-frase="Pode ficar tranquilo 😊";
-classe="baixo";
-explicacaoHumana="Essa mensagem parece normal.";
+if(risco < 30){
+nivel = "🟢 Parece seguro";
+explicacao = "Não encontramos sinais fortes de golpe.";
 }
-else if(risco<70){
-frase="Atenção, isso pode ser suspeito 🤔";
-classe="medio";
-explicacaoHumana="Tem sinais estranhos, vale conferir melhor.";
+else if(risco < 70){
+nivel = "🟡 Atenção";
+explicacao = "Essa mensagem tem alguns sinais suspeitos.";
 }
 else{
-frase="Cuidado! Isso parece golpe ⚠️";
-classe="alto";
-explicacaoHumana="Essa mensagem tenta te pressionar ou pedir algo importante.";
+nivel = "🔴 CUIDADO! Isso parece golpe";
+explicacao = "Essa mensagem tem vários sinais típicos de golpe.";
 }
 
-// EXPLICAÇÃO
-let explicacaoDetalhada = motivos.map(m=>{
-if(m.includes("dados")) return "Estão pedindo informações pessoais";
-if(m.includes("dinheiro")) return "Estão pedindo dinheiro";
-if(m.includes("Pressão")) return "Estão te apressando";
-if(m.includes("Ameaça")) return "Estão tentando te assustar";
-if(m.includes("Link")) return "Tem link suspeito";
-return m;
-});
-
-// PASSO
-let passo = motivos.map((m,i)=>`Passo ${i+1}: ${m}`).join("<br>");
-
-// BARRA
-let cor="#4caf50";
-if(risco>30) cor="#ff9800";
-if(risco>70) cor="#f44336";
-
-let barra = `
-<div style="background:#ddd;border-radius:10px;height:10px;margin:10px 0;">
-<div style="width:${risco}%;background:${cor};height:10px;border-radius:10px;"></div>
-</div>
-`;
-
-// 🆕 O QUE FAZER AGORA
-let acoes = [];
-
-if(risco >= 70){
-acoes = [
-"Não clique em links dessa mensagem",
-"Não envie dinheiro ou PIX",
-"Não informe dados pessoais",
-"Confirme com a pessoa ou empresa real",
-"Ignore ou bloqueie o contato"
-];
-}
-else if(risco >= 30){
-acoes = [
-"Desconfie e analise com calma",
-"Evite clicar em links",
-"Confirme com alguém de confiança",
-"Pesquise antes de agir"
-];
-}
-else{
-acoes = [
-"Mensagem aparentemente segura",
-"Mesmo assim, nunca compartilhe dados pessoais sem certeza"
-];
-}
-
-// RESULTADO
-resultado.className = "result " + classe;
-
-resultado.innerHTML = `
-<h3>${frase}</h3>
-${barra}
+// mostrar
+document.getElementById("resultado").innerHTML = `
+<h3>${nivel}</h3>
 <p><b>Risco:</b> ${risco}%</p>
 
-<p><b>O que percebemos:</b><br>
-${explicacaoDetalhada.join("<br>") || "Nada suspeito"}
+<p><b>👉 O que percebemos:</b><br>
+${motivos.join("<br>") || "Nenhum padrão detectado"}
 </p>
 
-<p><b>Passo a passo:</b><br>
-${passo || "Nenhum problema"}
+<p><b>👉 Explicação simples:</b><br>
+${explicacao}
 </p>
 
-<p><b>Explicação simples:</b><br>
-${explicacaoHumana}
+<p><b>👉 O que fazer agora:</b><br>
+• Não clique em links<br>
+• Não envie dinheiro<br>
+• Confirme com alguém de confiança
 </p>
-
-<p><b>O que fazer agora:</b><br>
-${acoes.map(a=>"• "+a).join("<br>")}
-</p>
-
-<p class="small">💡 Dica: Golpistas sempre criam urgência.</p>
 `;
 
-}catch(e){
-resultado.innerHTML="Erro ao analisar.";
-console.error(e);
 }
 
+// ===================== EXEMPLOS =====================
+
+function exemplo(tipo){
+
+const exemplos = {
+
+banco:[
+"Sua conta foi bloqueada. Envie seu CPF e senha agora.",
+"Detectamos atividade suspeita. Confirme seus dados imediatamente.",
+"Seu acesso foi suspenso. Atualize suas informações agora."
+],
+
+premio:[
+"Parabéns! Você ganhou um prêmio. Clique e receba agora.",
+"Você foi selecionado para ganhar R$5.000.",
+"Última chance! Confirme seus dados para ganhar."
+],
+
+fake:[
+"URGENTE: Governo vai bloquear contas amanhã!",
+"Nova lei vai tirar seu dinheiro.",
+"Alerta geral! Bancos vão fechar hoje."
+],
+
+pix:[
+"Me faz um PIX urgente preciso agora!",
+"Envie R$ agora via PIX por favor!",
+"Transferência urgente necessária!"
+]
+
+};
+
+let lista = exemplos[tipo];
+let texto = lista[Math.floor(Math.random()*lista.length)];
+
+document.getElementById("mensagem").value = texto;
+
 }
 
-// =====================
-// 🧠 FEEDBACK
-// =====================
-function feedback(golpe){
-let texto = document.getElementById("mensagem").value;
-if(!texto) return;
+// ===================== TREINAMENTO =====================
 
-let mem = carregarMemoria();
-mem.push({texto:texto.toLowerCase(),golpe:golpe});
-salvarMemoria(mem);
-}
-
-// =====================
-// ⚡ SIMULAR
-// =====================
-function simular(){
-const golpes=[
-"Envie seu CPF agora ou será bloqueado",
-"PIX urgente preciso de ajuda",
-"Você ganhou prêmio clique aqui",
-"Clique para atualizar seus dados"
+const perguntas = [
+{t:"PIX urgente preciso agora",g:true},
+{t:"Reunião amanhã às 10h",g:false},
+{t:"Você ganhou um prêmio clique aqui",g:true},
+{t:"Envie seu CPF para confirmar",g:true},
+{t:"Atualização de sistema amanhã",g:false}
 ];
-document.getElementById("mensagem").value =
-golpes[Math.floor(Math.random()*golpes.length)];
+
+let atual = 0;
+
+function novaPergunta(){
+atual = Math.floor(Math.random()*perguntas.length);
+document.getElementById("treinoTexto").innerText = perguntas[atual].t;
 }
 
-// =====================
-// 🎮 TREINO
-// =====================
-let pontuacao=0, rodada=0;
-
-const treinos=[
-{texto:"Oi tudo bem?",seguro:true},
-{texto:"Envie seu CPF agora",seguro:false},
-{texto:"PIX urgente",seguro:false},
-{texto:"Reunião amanhã",seguro:true}
-];
-
-let treinoAtual=null;
-
-function novoTreino(){
-treinoAtual = treinos[Math.floor(Math.random()*treinos.length)];
-document.getElementById("treinoTexto").innerText = treinoAtual.texto;
-}
-
-function resposta(v){
-
-if(!treinoAtual) return;
-
-rodada++;
-
-let msg="";
-
-if(v===treinoAtual.seguro){
-pontuacao++;
-msg="✔ Boa! Você acertou 👏";
+function responder(resposta){
+if(resposta === perguntas[atual].g){
+alert("✅ Acertou!");
 }else{
-msg="❌ Essa era uma tentativa de golpe.";
+alert("❌ Errou!");
+}
+novaPergunta();
 }
 
-document.getElementById("feedbackTreino").innerHTML=msg;
-
-document.getElementById("placar").innerText =
-"🏆 Pontuação: "+pontuacao+" / "+rodada;
-
-}
+// iniciar
+novaPergunta();
 
 </script>
 
