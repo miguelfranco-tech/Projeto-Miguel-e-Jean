@@ -18,10 +18,6 @@ body{
   margin:auto;
 }
 
-h1{
-  color:#1565c0;
-}
-
 textarea{
   width:100%;
   height:120px;
@@ -48,6 +44,10 @@ button{
   border-radius:10px;
 }
 
+#feedbackTreino{
+  margin-top:10px;
+  font-weight:bold;
+}
 </style>
 </head>
 
@@ -56,18 +56,15 @@ button{
 <div class="container">
 
 <h1>🛡️ Escudo Digital</h1>
-<p>Detecta golpes, fake news e mensagens perigosas.</p>
+<p>Detecta golpes e ajuda você a não cair neles.</p>
 
-<textarea id="mensagem" placeholder="Digite ou cole a mensagem aqui"></textarea>
-
+<textarea id="mensagem" placeholder="Digite a mensagem aqui"></textarea>
 <br>
 <button onclick="analisar()">🔎 Analisar mensagem</button>
 
-<!-- RESULTADO -->
 <div class="result" id="resultado"></div>
 
 <!-- EXEMPLOS -->
-<div style="margin-top:20px;">
 <h3>⚠️ Exemplos de golpes</h3>
 
 <button onclick="exemplo('banco')">🏦 Banco</button>
@@ -75,11 +72,8 @@ button{
 <button onclick="exemplo('fake')">📢 Fake News</button>
 <button onclick="exemplo('pix')">💸 PIX</button>
 
-</div>
-
 <!-- TREINAMENTO -->
-<div style="margin-top:30px;">
-<h3>🧠 Treinamento para não cair em golpes</h3>
+<h3 style="margin-top:30px;">🧠 Treinamento para não cair em golpes</h3>
 
 <p id="treinoTexto"></p>
 
@@ -89,50 +83,62 @@ button{
 <br><br>
 <button onclick="novaPergunta()">🔄 Nova</button>
 
+<p id="feedbackTreino"></p>
+
+<!-- BARRA -->
+<div style="margin-top:15px;">
+  <p><b>Seu progresso:</b></p>
+
+  <div style="background:#ddd; border-radius:10px; height:20px;">
+    <div id="barraProgresso" style="
+      height:100%;
+      width:0%;
+      background:#4caf50;
+      border-radius:10px;
+      transition:0.4s;
+    "></div>
+  </div>
+
+  <p id="textoProgresso">0 acertos</p>
 </div>
 
 </div>
 
 <script>
 
-// ===================== IA PRINCIPAL =====================
-
+// ================= IA =================
 function analisar(){
 
 let texto = document.getElementById("mensagem").value.toLowerCase();
 
 if(!texto){
-alert("Digite uma mensagem primeiro!");
+document.getElementById("resultado").innerHTML = "Digite uma mensagem primeiro.";
 return;
 }
 
 let risco = 0;
 let motivos = [];
 
-// padrões perigosos
 const regras = [
-  {p:["cpf","senha","dados","código"],peso:30,m:"Pedido de dados pessoais"},
-  {p:["urgente","agora","imediatamente"],peso:25,m:"Pressão de urgência"},
-  {p:["clique","link"],peso:20,m:"Link suspeito"},
-  {p:["ganhou","prêmio","promoção"],peso:25,m:"Promessa de prêmio"},
-  {p:["pix","transferência"],peso:30,m:"Pedido de dinheiro"},
-  {p:["bloqueado","suspenso"],peso:20,m:"Ameaça de bloqueio"}
+{p:["cpf","senha","dados"],peso:30,m:"Pedido de dados pessoais"},
+{p:["urgente","agora"],peso:25,m:"Pressão de urgência"},
+{p:["clique","link"],peso:20,m:"Link suspeito"},
+{p:["ganhou","prêmio"],peso:25,m:"Promessa de ganho fácil"},
+{p:["pix","transferência"],peso:30,m:"Pedido de dinheiro"},
+{p:["bloqueado","suspenso"],peso:20,m:"Ameaça de bloqueio"}
 ];
 
-// analisar
 regras.forEach(r=>{
-  r.p.forEach(palavra=>{
-    if(texto.includes(palavra)){
-      risco += r.peso;
-      motivos.push(r.m);
-    }
-  });
+r.p.forEach(p=>{
+if(texto.includes(p)){
+risco += r.peso;
+motivos.push(r.m);
+}
+});
 });
 
-// limite
 if(risco>100) risco=100;
 
-// resultado
 let nivel = "";
 let explicacao = "";
 
@@ -142,23 +148,22 @@ explicacao = "Não encontramos sinais fortes de golpe.";
 }
 else if(risco < 70){
 nivel = "🟡 Atenção";
-explicacao = "Essa mensagem tem alguns sinais suspeitos.";
+explicacao = "Tem alguns sinais suspeitos.";
 }
 else{
-nivel = "🔴 CUIDADO! Isso parece golpe";
-explicacao = "Essa mensagem tem vários sinais típicos de golpe.";
+nivel = "🔴 Isso parece golpe";
+explicacao = "Mensagem com vários sinais de golpe.";
 }
 
-// mostrar
 document.getElementById("resultado").innerHTML = `
 <h3>${nivel}</h3>
 <p><b>Risco:</b> ${risco}%</p>
 
-<p><b>👉 O que percebemos:</b><br>
-${motivos.join("<br>") || "Nenhum padrão detectado"}
+<p><b>Motivos:</b><br>
+${motivos.join("<br>") || "Nenhum identificado"}
 </p>
 
-<p><b>👉 Explicação simples:</b><br>
+<p><b>Explicação:</b><br>
 ${explicacao}
 </p>
 
@@ -171,34 +176,33 @@ ${explicacao}
 
 }
 
-// ===================== EXEMPLOS =====================
-
+// ================= EXEMPLOS =================
 function exemplo(tipo){
 
 const exemplos = {
 
 banco:[
-"Sua conta foi bloqueada. Envie seu CPF e senha agora.",
-"Detectamos atividade suspeita. Confirme seus dados imediatamente.",
-"Seu acesso foi suspenso. Atualize suas informações agora."
+"Sua conta foi bloqueada. Envie seus dados agora.",
+"Confirme seu CPF imediatamente.",
+"Conta suspensa, atualize informações."
 ],
 
 premio:[
-"Parabéns! Você ganhou um prêmio. Clique e receba agora.",
-"Você foi selecionado para ganhar R$5.000.",
-"Última chance! Confirme seus dados para ganhar."
+"Você ganhou um prêmio! Clique aqui.",
+"Parabéns! Retire seu dinheiro agora.",
+"Última chance de ganhar!"
 ],
 
 fake:[
-"URGENTE: Governo vai bloquear contas amanhã!",
-"Nova lei vai tirar seu dinheiro.",
-"Alerta geral! Bancos vão fechar hoje."
+"URGENTE: bancos vão fechar amanhã!",
+"Nova lei vai tirar dinheiro das contas.",
+"Alerta geral no país!"
 ],
 
 pix:[
-"Me faz um PIX urgente preciso agora!",
-"Envie R$ agora via PIX por favor!",
-"Transferência urgente necessária!"
+"Faz um PIX urgente agora!",
+"Me manda dinheiro rápido por favor.",
+"Transferência necessária imediatamente."
 ]
 
 };
@@ -210,17 +214,27 @@ document.getElementById("mensagem").value = texto;
 
 }
 
-// ===================== TREINAMENTO =====================
-
+// ================= TREINAMENTO =================
 const perguntas = [
 {t:"PIX urgente preciso agora",g:true},
 {t:"Reunião amanhã às 10h",g:false},
 {t:"Você ganhou um prêmio clique aqui",g:true},
 {t:"Envie seu CPF para confirmar",g:true},
-{t:"Atualização de sistema amanhã",g:false}
+{t:"Atualização de sistema amanhã",g:false},
+
+{t:"Mãe troquei de número, me manda dinheiro aqui",g:true},
+{t:"Seu cartão foi clonado, confirme seus dados agora",g:true},
+{t:"Oi, você pode falar agora?",g:false},
+{t:"Promoção exclusiva, informe seus dados",g:true},
+{t:"Vamos almoçar amanhã?",g:false},
+{t:"Clique para evitar bloqueio da conta",g:true},
+{t:"Seu pacote chegou, acompanhe aqui",g:true},
+{t:"Te ligo mais tarde",g:false}
 ];
 
 let atual = 0;
+let acertos = 0;
+let total = 0;
 
 function novaPergunta(){
 atual = Math.floor(Math.random()*perguntas.length);
@@ -228,15 +242,30 @@ document.getElementById("treinoTexto").innerText = perguntas[atual].t;
 }
 
 function responder(resposta){
+
+const feedback = document.getElementById("feedbackTreino");
+
+total++;
+
 if(resposta === perguntas[atual].g){
-alert("✅ Acertou!");
+acertos++;
+feedback.innerHTML = "✅ Acertou!";
+feedback.style.color = "green";
 }else{
-alert("❌ Errou!");
-}
-novaPergunta();
+feedback.innerHTML = "❌ Era golpe!";
+feedback.style.color = "red";
 }
 
-// iniciar
+let porcentagem = Math.round((acertos/total)*100);
+
+document.getElementById("barraProgresso").style.width = porcentagem + "%";
+document.getElementById("textoProgresso").innerText =
+acertos + " de " + total + " (" + porcentagem + "%)";
+
+setTimeout(novaPergunta, 1000);
+
+}
+
 novaPergunta();
 
 </script>
