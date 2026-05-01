@@ -95,17 +95,6 @@ border-radius:10px;
 <script>
 
 // =====================
-// 🔊 VOZ
-// =====================
-function falar(texto){
-try{
-const msg = new SpeechSynthesisUtterance(texto);
-msg.lang = "pt-BR";
-speechSynthesis.speak(msg);
-}catch(e){}
-}
-
-// =====================
 // 🧠 MEMÓRIA
 // =====================
 function carregarMemoria(){
@@ -150,33 +139,39 @@ texto = texto.replace(/[^a-z0-9\s]/g," ");
 
 let risco = 0;
 let motivos = [];
-let intencoes = new Set();
+let gatilhos = 0;
 
 // PADRÕES
 if(/cpf|senha|codigo/.test(texto)){
-risco+=30; motivos.push("Pedido de dados pessoais"); intencoes.add("Roubo de dados");
+risco+=30; motivos.push("Pedido de dados pessoais"); gatilhos++;
 }
 
 if(/pix|transferencia|pagamento/.test(texto)){
-risco+=30; motivos.push("Pedido de dinheiro"); intencoes.add("Financeiro");
+risco+=30; motivos.push("Pedido de dinheiro"); gatilhos++;
 }
 
 if(/urgente|agora/.test(texto)){
-risco+=20; motivos.push("Pressão"); intencoes.add("Pressão");
+risco+=20; motivos.push("Pressão"); gatilhos++;
 }
 
 if(/bloqueado|suspenso/.test(texto)){
-risco+=25; motivos.push("Ameaça"); intencoes.add("Medo");
+risco+=25; motivos.push("Ameaça"); gatilhos++;
 }
 
 if(/clique|link|http/.test(texto)){
-risco+=25; motivos.push("Link suspeito");
+risco+=25; motivos.push("Link suspeito"); gatilhos++;
 }
 
 // COMBO
 if(texto.includes("pix") && texto.includes("urgente")){
 risco+=40;
 motivos.push("PIX + urgência");
+}
+
+// INTENSIDADE
+if(gatilhos >= 3){
+risco+=15;
+motivos.push("Muitos sinais suspeitos");
 }
 
 // APRENDIZADO
@@ -190,7 +185,7 @@ if(item.golpe){risco+=20;} else{risco-=10;}
 if(risco>100) risco=100;
 if(risco<0) risco=0;
 
-// FRASES HUMANAS
+// FRASES
 let frase="", classe="", explicacaoHumana="";
 
 if(risco<30){
@@ -199,17 +194,17 @@ classe="baixo";
 explicacaoHumana="Essa mensagem parece normal.";
 }
 else if(risco<70){
-frase="Melhor conferir 🤔";
+frase="Atenção, isso pode ser suspeito 🤔";
 classe="medio";
-explicacaoHumana="Tem sinais suspeitos, vale atenção.";
+explicacaoHumana="Tem sinais estranhos, vale conferir melhor.";
 }
 else{
 frase="Cuidado! Isso parece golpe ⚠️";
 classe="alto";
-explicacaoHumana="Está pedindo algo ou te pressionando, típico de golpe.";
+explicacaoHumana="Essa mensagem tenta te pressionar ou pedir algo importante.";
 }
 
-// EXPLICAÇÃO SIMPLES
+// EXPLICAÇÃO
 let explicacaoDetalhada = motivos.map(m=>{
 if(m.includes("dados")) return "Estão pedindo informações pessoais";
 if(m.includes("dinheiro")) return "Estão pedindo dinheiro";
@@ -219,11 +214,11 @@ if(m.includes("Link")) return "Tem link suspeito";
 return m;
 });
 
-// PASSO A PASSO
+// PASSO
 let passo = motivos.map((m,i)=>`Passo ${i+1}: ${m}`).join("<br>");
 
 // BARRA
-let cor = "#4caf50";
+let cor="#4caf50";
 if(risco>30) cor="#ff9800";
 if(risco>70) cor="#f44336";
 
@@ -233,6 +228,33 @@ let barra = `
 </div>
 `;
 
+// 🆕 O QUE FAZER AGORA
+let acoes = [];
+
+if(risco >= 70){
+acoes = [
+"Não clique em links dessa mensagem",
+"Não envie dinheiro ou PIX",
+"Não informe dados pessoais",
+"Confirme com a pessoa ou empresa real",
+"Ignore ou bloqueie o contato"
+];
+}
+else if(risco >= 30){
+acoes = [
+"Desconfie e analise com calma",
+"Evite clicar em links",
+"Confirme com alguém de confiança",
+"Pesquise antes de agir"
+];
+}
+else{
+acoes = [
+"Mensagem aparentemente segura",
+"Mesmo assim, nunca compartilhe dados pessoais sem certeza"
+];
+}
+
 // RESULTADO
 resultado.className = "result " + classe;
 
@@ -240,17 +262,28 @@ resultado.innerHTML = `
 <h3>${frase}</h3>
 ${barra}
 <p><b>Risco:</b> ${risco}%</p>
-<p><b>O que percebemos:</b><br>${explicacaoDetalhada.join("<br>") || "Nada suspeito"}</p>
-<p><b>Passo a passo:</b><br>${passo || "Nenhum problema"}</p>
-<p><b>Explicação simples:</b><br>${explicacaoHumana}</p>
-<p class="small">💡 Nunca envie dados ou dinheiro sem confirmar.</p>
+
+<p><b>O que percebemos:</b><br>
+${explicacaoDetalhada.join("<br>") || "Nada suspeito"}
+</p>
+
+<p><b>Passo a passo:</b><br>
+${passo || "Nenhum problema"}
+</p>
+
+<p><b>Explicação simples:</b><br>
+${explicacaoHumana}
+</p>
+
+<p><b>O que fazer agora:</b><br>
+${acoes.map(a=>"• "+a).join("<br>")}
+</p>
+
+<p class="small">💡 Dica: Golpistas sempre criam urgência.</p>
 `;
 
-// FALAR
-falar(frase + ". Risco de " + risco + " por cento.");
-
 }catch(e){
-resultado.innerHTML = "Erro ao analisar.";
+resultado.innerHTML="Erro ao analisar.";
 console.error(e);
 }
 
@@ -276,7 +309,7 @@ const golpes=[
 "Envie seu CPF agora ou será bloqueado",
 "PIX urgente preciso de ajuda",
 "Você ganhou prêmio clique aqui",
-"Atualize seus dados agora"
+"Clique para atualizar seus dados"
 ];
 document.getElementById("mensagem").value =
 golpes[Math.floor(Math.random()*golpes.length)];
@@ -311,9 +344,9 @@ let msg="";
 
 if(v===treinoAtual.seguro){
 pontuacao++;
-msg="✔ Acertou!";
+msg="✔ Boa! Você acertou 👏";
 }else{
-msg="❌ Era golpe comum!";
+msg="❌ Essa era uma tentativa de golpe.";
 }
 
 document.getElementById("feedbackTreino").innerHTML=msg;
