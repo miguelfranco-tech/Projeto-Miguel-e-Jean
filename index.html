@@ -14,7 +14,7 @@ padding:20px;
 }
 
 .container{
-max-width:750px;
+max-width:800px;
 margin:auto;
 background:white;
 padding:25px;
@@ -24,7 +24,7 @@ box-shadow:0 6px 18px rgba(0,0,0,0.08);
 
 textarea{
 width:100%;
-height:130px;
+height:140px;
 border-radius:10px;
 padding:10px;
 font-size:15px;
@@ -73,12 +73,27 @@ text-align:left;
 <button class="secondary" onclick="gerarPorNivel('medio')">🟡 Suspeita</button>
 <button class="secondary" onclick="gerarPorNivel('baixo')">🟢 Normal</button>
 
-<h3>⚠️ Exemplos de golpes</h3>
+<h3>⚠️ Exemplos</h3>
 <button onclick="exemplo('banco')">🏦 Banco</button>
 <button onclick="exemplo('premio')">🎁 Prêmio</button>
 <button onclick="exemplo('fake')">📢 Fake News</button>
 
 <div id="resultado" class="result"></div>
+
+<!-- TREINAMENTO -->
+<h3>🧠 Treinamento para não cair em golpes</h3>
+
+<p id="treinoTexto"></p>
+
+<button onclick="responder(true)">Golpe</button>
+<button onclick="responder(false)">Seguro</button>
+
+<div style="background:#ddd;height:10px;border-radius:5px;margin-top:10px;">
+<div id="barra" style="height:10px;width:0%;background:green;border-radius:5px;"></div>
+</div>
+
+<p id="progresso"></p>
+<p id="feedbackTreino"></p>
 
 </div>
 
@@ -89,49 +104,44 @@ function normalizar(txt){
 return txt.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
 }
 
-// ================= BANCO MASSIVO =================
+// ================= BANCO GRANDE =================
 const frases = {
 
 alto:[
-"troquei de numero me manda pix urgente","preciso de dinheiro agora urgente",
-"conta bloqueada envie cpf para desbloquear","seu cartao foi clonado confirme dados",
-"ganhe dinheiro facil agora","clique para receber premio","envie senha urgente",
-"retire dinheiro agora","transferencia urgente","envie dados bancarios",
-"liberacao de valor pendente","seguranca comprometida atualize dados",
-"codigo invalido confirme","acesso negado envie dados","dinheiro bloqueado confirme",
-"beneficio liberado informe dados","pix necessario agora","manda dinheiro rapido",
-"confirmacao urgente de conta","atualize senha agora","ganhe dinheiro sem esforço",
-"receba dinheiro rapido","clique urgente link","pagamento urgente necessario",
-"premio liberado dados","codigo de seguranca invalido","envie comprovante agora",
-"confirmacao obrigatoria imediata","sua conta sera bloqueada",
-"verificacao urgente de seguranca","envie foto do cartao",
-"liberacao urgente de dinheiro","confirme cpf agora",
-"transferencia falhou confirme dados","acesso restrito confirme"
+"me manda pix urgente","troquei de numero me manda dinheiro",
+"conta bloqueada envie cpf","seu cartao foi clonado confirme dados",
+"ganhe dinheiro facil agora","premio informe dados",
+"transferencia urgente","envie senha agora",
+"clique para liberar acesso","receba dinheiro rapido",
+"beneficio liberado informe dados","envie codigo agora",
+"pix necessario agora","confirme identidade urgente",
+"pagamento necessario urgente","acesso restrito confirme",
+"retire valor agora","liberacao de valor pendente",
+"envie comprovante agora","seguranca comprometida atualize dados",
+"codigo invalido confirme agora","envie dados bancarios",
+"ganho rapido sem esforço","clique urgente link"
 ],
 
 medio:[
-"verifique sua conta","atualize seus dados","nova promocao disponivel",
-"beneficio ativo","mensagem importante","aviso sistema","acao necessaria",
-"cadastro revisao","novo acesso","info pendente","atualizacao necessaria",
-"oferta especial","promocao limitada","verificacao recomendada",
-"nova notificacao","alerta importante","confirme informacoes",
-"acesso recente detectado","revisao sistema","cheque sua conta",
-"notificacao importante","aviso de seguranca","confira detalhes"
+"verifique sua conta","atualize seus dados",
+"aviso importante sistema","beneficio ativo",
+"mensagem importante","alerta de seguranca",
+"revisao de cadastro","notificacao sistema",
+"novo acesso detectado","confirme informacoes",
+"oferta especial","promocao limitada"
 ],
 
 baixo:[
-"vamos conversar depois","te ligo mais tarde","reuniao amanha",
-"tudo certo","boa noite","vamos almocar","obrigado","ate amanha",
-"cheguei em casa","tudo tranquilo","falamos depois","me chama depois",
-"pode deixar","combinado","depois vemos isso","ok tranquilo",
-"ja resolvi isso","te aviso depois","fica tranquilo"
+"vamos conversar depois","te ligo mais tarde",
+"boa noite","tudo certo","cheguei em casa",
+"vamos almocar","obrigado","ate amanha",
+"falamos depois","tudo tranquilo"
 ]
 
 };
 
 // ================= PALAVRAS =================
 const palavrasAlto = ["pix","cpf","senha","codigo","urgente","agora","transferencia","dinheiro","bloqueado","confirme","cartao","banco","login","seguranca","validacao"];
-
 const palavrasMedio = ["verifique","atualize","aviso","alerta","importante","oferta","promocao","beneficio","notificacao","acesso","mensagem","sistema","dados","cadastro","online"];
 
 // ================= ANALISAR =================
@@ -152,65 +162,38 @@ risco+=v;
 motivos.push(m);
 }
 
-// ================= FRASES =================
-frases.alto.forEach(f=>{
-if(texto.includes(f)) add(60,"🚨 Frase típica de golpe");
-});
+// FRASES
+frases.alto.forEach(f=>{if(texto.includes(f)) add(60,"🚨 Frase típica de golpe");});
+frases.medio.forEach(f=>{if(texto.includes(f)) add(20,"⚠️ Frase suspeita");});
 
-frases.medio.forEach(f=>{
-if(texto.includes(f)) add(20,"⚠️ Frase suspeita");
-});
+// PALAVRAS
+palavrasAlto.forEach(p=>{if(texto.includes(p)) add(12,"Palavra forte: "+p);});
+palavrasMedio.forEach(p=>{if(texto.includes(p)) add(5,"Palavra suspeita: "+p);});
 
-// ================= PALAVRAS =================
-palavrasAlto.forEach(p=>{
-if(texto.includes(p)) add(12,"Palavra forte: "+p);
-});
-
-palavrasMedio.forEach(p=>{
-if(texto.includes(p)) add(5,"Palavra suspeita: "+p);
-});
-
-// ================= IA ESTRUTURAL =================
+// IA ESTRUTURAL
 function tem(...p){return p.some(x=>texto.includes(x));}
 
-if(tem("pix","dinheiro") && tem("urgente","agora")){
-add(70,"🚨 Pedido urgente de dinheiro");
-}
+if(tem("pix","dinheiro") && tem("urgente","agora")) add(70,"🚨 Pedido de dinheiro urgente");
+if(tem("cpf","senha") && tem("envie","confirme")) add(70,"🚨 Pedido de dados");
+if(tem("premio") && tem("dados","retire")) add(75,"🚨 Golpe de prêmio");
+if(tem("conta") && tem("bloqueada")) add(70,"🚨 Bloqueio falso");
+if(tem("dinheiro") && tem("facil")) add(80,"🚨 Dinheiro fácil");
 
-if(tem("cpf","senha","dados") && tem("envie","confirme")){
-add(70,"🚨 Pedido de dados sensíveis");
-}
-
-if(tem("premio") && tem("dados","retire")){
-add(75,"🚨 Golpe de prêmio falso");
-}
-
-if(tem("conta") && tem("bloqueada")){
-add(70,"🚨 Bloqueio falso de conta");
-}
-
-if(tem("dinheiro") && tem("facil")){
-add(80,"🚨 Promessa de dinheiro fácil");
-}
-
-// ================= LINKS =================
+// LINKS
 let links = texto.match(/https?:\/\/[^\s]+|www\.[^\s]+/g);
 
 if(links){
 links.forEach(l=>{
-
-if(l.includes(".ru")||l.includes(".xyz")||l.includes(".tk")||l.includes("bit.ly")){
-add(80,"🚨 Link suspeito ou encurtado");
+if(l.includes(".ru")||l.includes(".xyz")||l.includes("bit.ly")||l.includes(".tk")){
+add(80,"🚨 Link suspeito");
 }
-
 if(l.includes("login")||l.includes("verify")||l.includes("update")){
 add(50,"⚠️ Link tentando parecer oficial");
 }
-
 });
 }
 
-// ================= BANCO FALSO =================
+// BANCO FALSO
 const bancos=["nubank","itau","bradesco","santander","caixa","bb"];
 
 if(links){
@@ -223,57 +206,50 @@ add(85,"🚨 Possível banco falso ("+b+")");
 });
 }
 
-// ================= REGRAS ANTI-ERRO =================
-if(risco >= 60 && risco < 70){
-risco = 70;
-}
+// ANTI-ERRO
+if(risco>=60 && risco<70) risco=70;
+if(texto.includes("cpf")||texto.includes("senha")||texto.includes("pix")) risco+=20;
 
-if(
-texto.includes("cpf") ||
-texto.includes("senha") ||
-texto.includes("pix") ||
-texto.includes("premio")
-){
-risco += 20;
-}
-
-// ================= FINAL =================
+// FINAL
 if(risco>100) risco=100;
 if(risco<5) risco=5;
 
-let nivel = risco<30?"🟢 Seguro":risco<70?"🟡 Atenção":"🔴 Golpe";
 let classe = risco<30?"baixo":risco<70?"medio":"alto";
+let nivel = classe=="baixo"?"🟢 Seguro":classe=="medio"?"🟡 Atenção":"🔴 Golpe";
 
-// ================= RESPOSTA HUMANA =================
-let explicacao =
-risco<30
-? "Essa mensagem parece normal, sem sinais claros de golpe. Mesmo assim, sempre vale manter atenção ao lidar com informações pessoais."
-: risco<70
-? "Essa mensagem possui alguns sinais suspeitos. Pode ser uma tentativa de enganar você, então o ideal é não tomar decisões rápidas."
-: "Essa mensagem apresenta vários sinais típicos de golpe. Ela provavelmente tenta enganar você para obter dinheiro ou dados pessoais.";
+// ================= ENTENDA VARIÁVEL =================
+const respostas = {
+baixo:[
+"Essa mensagem parece segura, mas sempre mantenha atenção.",
+"Não há sinais fortes de golpe, mas evite compartilhar dados.",
+"Parece uma conversa comum, sem riscos claros."
+],
+medio:[
+"A mensagem possui sinais suspeitos, analise com cuidado.",
+"Há indícios que exigem atenção, evite agir rápido.",
+"Pode ser uma tentativa de golpe, confirme antes."
+],
+alto:[
+"Essa mensagem apresenta fortes sinais de golpe.",
+"Alerta: padrão típico de fraude detectado.",
+"Provável tentativa de roubo de dados ou dinheiro."
+]
+};
 
-// ================= RESULTADO =================
-let r = document.getElementById("resultado");
-r.className="result "+classe;
+let explicacao = respostas[classe][Math.floor(Math.random()*3)];
 
-r.innerHTML=`
+document.getElementById("resultado").className="result "+classe;
+
+document.getElementById("resultado").innerHTML=`
 <h3>${nivel}</h3>
-
 <p><b>📊 Risco:</b> ${risco}%</p>
-
-<p><b>🔎 Entenda:</b><br>
-${explicacao}
-</p>
-
-<p><b>⚠️ Sinais encontrados:</b><br>
-${motivos.join("<br>") || "Nenhum sinal forte identificado"}
-</p>
-
+<p><b>🔎 Entenda:</b><br>${explicacao}</p>
+<p><b>⚠️ Sinais encontrados:</b><br>${motivos.join("<br>") || "Nenhum forte"}</p>
 <p><b>👉 O que fazer agora:</b><br>
-• Não clique em links suspeitos<br>
+• Não clique em links<br>
 • Não envie dinheiro<br>
-• Não compartilhe dados pessoais<br>
-• Confirme a informação com a fonte real
+• Não informe dados<br>
+• Confirme fora da conversa
 </p>
 `;
 
@@ -295,30 +271,68 @@ frases[n][Math.floor(Math.random()*frases[n].length)];
 function exemplo(t){
 
 const exemplos = {
-
 banco:[
 "Conta bloqueada, envie CPF para desbloquear",
 "Seu banco detectou atividade suspeita, confirme dados"
 ],
-
 premio:[
 "Você ganhou um prêmio, informe seus dados",
 "Retire seu prêmio agora clicando aqui"
 ],
-
 fake:[
 "Nova lei permite ganhar dinheiro fácil",
 "URGENTE bancos vão fechar amanhã"
 ]
-
 };
 
 let lista = exemplos[t];
-
 document.getElementById("mensagem").value =
 lista[Math.floor(Math.random()*lista.length)];
-
 }
+
+// ================= TREINAMENTO INTELIGENTE =================
+
+const treino = [
+{t:"me manda pix urgente",g:true,exp:"Urgência + dinheiro = golpe comum"},
+{t:"ganhe dinheiro facil",g:true,exp:"Promessa de dinheiro fácil"},
+{t:"conta bloqueada envie cpf",g:true,exp:"Pedido de CPF é golpe"},
+{t:"clique no link para liberar acesso",g:true,exp:"Links podem roubar dados"},
+{t:"vamos conversar depois",g:false,exp:"Mensagem normal"},
+{t:"boa noite tudo bem",g:false,exp:"Sem risco"},
+{t:"reuniao amanha",g:false,exp:"Mensagem comum"}
+];
+
+let atual=0,acertos=0,total=0;
+
+function novaPergunta(){
+atual=Math.floor(Math.random()*treino.length);
+document.getElementById("treinoTexto").innerText=treino[atual].t;
+}
+
+function responder(resp){
+
+total++;
+let certo=treino[atual].g;
+
+if(resp===certo){
+acertos++;
+document.getElementById("feedbackTreino").innerHTML=
+"✅ Acertou!<br>"+treino[atual].exp;
+}else{
+document.getElementById("feedbackTreino").innerHTML=
+"❌ Errou!<br>"+treino[atual].exp+"<br>Desconfie de urgência e pedidos de dados.";
+}
+
+let porcentagem=Math.round((acertos/total)*100);
+
+document.getElementById("barra").style.width=porcentagem+"%";
+document.getElementById("progresso").innerText=
+acertos+" de "+total+" ("+porcentagem+"%)";
+
+setTimeout(novaPergunta,1500);
+}
+
+novaPergunta();
 
 </script>
 
